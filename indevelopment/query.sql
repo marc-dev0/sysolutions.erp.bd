@@ -680,8 +680,6 @@ BEGIN
             SubCategory = c.Description, 
             Brand = d.Description,
             Description = a.Description,
-            A.BarCode,
-            A.Price,
             CASE WHEN a.State = '1' THEN 'Activo' ELSE 'Inactivo' END StateDescription,
             a.State,
             a.RegistrationDate
@@ -689,10 +687,21 @@ BEGIN
     INNER JOIN Category b on b.CategoryId = a.CategoryId
     inner join SubCategory c on c.CategoryId = b.CategoryId and c.SubCategoryId = a.SubCategoryId
     inner join Brand d on d.BrandId = a.BrandId 
-    --AND State = '1'
+    AND a.State = '1'
+
+    SELECT 
+            a.ProductId,
+            a.Price,
+            a.BarCode,
+            EquivalentFrom = concat(1, ' ',c.[Description]),
+            EquivalentTo = concat(a.EquivalentQuantity, ' ', d.[Description])
+        FROM dbo.ProductPresentation a 
+    INNER JOIN dbo.Product b ON b.ProductId = a.ProductId
+    INNER JOIN dbo.Measure c ON c.MeasureId = a.MeasureFromId
+    INNER JOIN dbo.Measure d ON d.MeasureId = a.MeasureToId
 END
 GO
-
+select * from dbo.ProductPresentation
 --DROP TABLE dbo.SalesOrder
 CREATE TABLE dbo.SalesOrder (
     SalesOrderId int identity(1,1) primary key not null,
