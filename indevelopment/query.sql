@@ -687,7 +687,7 @@ BEGIN
     INNER JOIN Category b on b.CategoryId = a.CategoryId
     inner join SubCategory c on c.CategoryId = b.CategoryId and c.SubCategoryId = a.SubCategoryId
     inner join Brand d on d.BrandId = a.BrandId 
-    AND a.State = '1'
+    --AND a.State = '1'
 
     SELECT 
             a.ProductId,
@@ -701,7 +701,21 @@ BEGIN
     INNER JOIN dbo.Measure d ON d.MeasureId = a.MeasureToId
 END
 GO
-select * from dbo.ProductPresentation
+
+CREATE OR ALTER PROC dbo.ProductPresentationGetByProductId
+(
+    @productId int
+)
+AS 
+BEGIN
+    SELECT 
+            EquivalentFrom = b.[Description] , a.Price 
+        FROM dbo.ProductPresentation a
+    INNER JOIN dbo.Measure b ON b.MeasureId = a.MeasureFromId
+    WHERE productId = @productId
+END
+GO
+
 --DROP TABLE dbo.SalesOrder
 CREATE TABLE dbo.SalesOrder (
     SalesOrderId int identity(1,1) primary key not null,
@@ -722,11 +736,14 @@ GO
 CREATE TABLE dbo.SalesOrderDetail (
     Amount int,
     Price decimal(16,6),
+    MeasureDescription varchar(50),
     ProductId int not null,
     SalesOrderId int not null,
+    ProductPresentationId int not null,
     CONSTRAINT FK__SalesOrderDetail__ProductId__6B79F03D FOREIGN KEY (ProductId) REFERENCES dbo.Product (ProductId),
     CONSTRAINT FK__SalesOrderDetail__SalesOrderId__6B79F03D FOREIGN KEY (SalesOrderId) REFERENCES dbo.SalesOrder (SalesOrderId),
-    CONSTRAINT PK__SalesOrdeDetail_PK PRIMARY KEY (ProductId, SalesOrderId)
+    CONSTRAINT FK__SalesOrderDetail__ProductPresentationId__6B79F03D FOREIGN KEY (ProductPresentationId) REFERENCES dbo.ProductPresentation (ProductPresentationId),
+    CONSTRAINT PK__SalesOrdeDetail_PK PRIMARY KEY (ProductId, SalesOrderId, ProductPresentationId)
 )
 GO
 
@@ -779,6 +796,7 @@ CREATE OR ALTER PROC dbo.SalesOrderDetailInsert
 (
     @Amount int,
     @Price decimal(16,6),
+    @MeasureDescription varchar(50),
     @ProductId int,
     @SalesOrderId int
 )
@@ -787,11 +805,13 @@ BEGIN
     INSERT INTO dbo.SalesOrderDetail
             (Amount,
             Price,
+            MeasureDescription,
             ProductId,
             SalesOrderId)
            VALUES
             (@Amount,
             @Price,
+            @MeasureDescription,
             @ProductId,
             @SalesOrderId)
 END
@@ -829,7 +849,7 @@ AS
 BEGIN
     SELECT 
             a.ProductId,
-            Product = b.Description,
+            Product = concat(b.Description, ' X ', a.MeasureDescription),
             a.Amount,
             a.Price
         FROM dbo.SalesOrderDetail a
@@ -839,10 +859,15 @@ BEGIN
 
 END
 
+select * from SalesOrder
+select * from SalesOrderDetail
+
 sELECT * FROM SubCategory ORDER BY SubCategoryId OFFSET 10 ROWS FETCH NEXT 10 ROWS ONLY;--00:00:00.725
 sELECT * FROM SubCategory--00:00:00.281
 
+select * from product
 
+update product set state = '0' where ProductId = 5
 
   SELECT RIGHT('NPV-000'+CAST(155 AS VARCHAR(10)),10)
 
