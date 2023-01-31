@@ -244,6 +244,28 @@ insert into Category (Description, State, RegistrationDate, RegistrationAccountI
               values ('GENERAL', '1', GETDATE(), 1)
 insert into Category (Description, State, RegistrationDate, RegistrationAccountId)
               values ('TEST1', '1', GETDATE(), 1)
+GO
+
+CREATE OR ALTER PROC dbo.CategoryInsert(
+    @Description varchar(100),
+    @State char(1),
+    @RegistrationAccountId int
+)
+AS
+BEGIN
+
+    INSERT INTO dbo.Category
+        ([Description],
+         [State],
+         RegistrationDate,
+         RegistrationAccountId)
+    VALUES 
+        (@Description,
+         @State,
+         GETDATE(),
+         @RegistrationAccountId);
+END
+GO  
 
 CREATE TABLE dbo.SubCategory (
     SubCategoryId int IDENTITY(1,1) primary key not null,
@@ -259,6 +281,30 @@ CREATE TABLE dbo.SubCategory (
     CONSTRAINT FK__Subcategory__CategoryId_6B79F03D FOREIGN KEY (CategoryId) REFERENCES dbo.Category (CategoryId)
 )
 GO
+
+CREATE OR ALTER PROC dbo.SubCategoryInsert(
+    @Description varchar(100),
+    @State char(1),
+    @CategoryId int,
+    @RegistrationAccountId int
+)
+AS
+BEGIN
+
+    INSERT INTO dbo.SubCategory
+        ([Description],
+         [State],
+         CategoryId,
+         RegistrationDate,
+         RegistrationAccountId)
+    VALUES 
+        (@Description,
+         @State,
+         @CategoryId,
+         GETDATE(),
+         @RegistrationAccountId);
+END
+GO  
 
 insert into dbo.SubCategory (Description, State, CategoryId, RegistrationDate, RegistrationAccountId) values('CONSERVE','1',2,GETDATE(),1)
 insert into dbo.SubCategory (Description, State, CategoryId, RegistrationDate, RegistrationAccountId) values('CERVEZA','1',1,GETDATE(),1)
@@ -364,6 +410,28 @@ CREATE TABLE dbo.Brand (
     CONSTRAINT FK__Brand__ModifiedUserId__6B79F03D FOREIGN KEY (ModifiedAccountId) REFERENCES dbo.Account (AccountId)
 )
 GO
+
+CREATE OR ALTER PROC dbo.BrandInsert(
+    @Description varchar(100),
+    @State char(1),
+    @RegistrationAccountId int
+)
+AS
+BEGIN
+
+    INSERT INTO dbo.Brand
+        ([Description],
+         [State],
+         RegistrationDate,
+         RegistrationAccountId)
+    VALUES 
+        (@Description,
+         @State,
+         GETDATE(),
+         @RegistrationAccountId);
+END
+GO  
+
 insert into dbo.Brand (Description, State, RegistrationDate, RegistrationAccountId) values('ACONCAGUA','1',GETDATE(),1)
 insert into dbo.Brand (Description, State, RegistrationDate, RegistrationAccountId) values('HELENA','1',GETDATE(),1)
 insert into dbo.Brand (Description, State, RegistrationDate, RegistrationAccountId) values('JAZAM','1',GETDATE(),1)
@@ -496,12 +564,41 @@ CREATE TABLE dbo.Measure (
     CONSTRAINT FK__Measure__ModifiedUserId__6B79F03D FOREIGN KEY (ModifiedAccountId) REFERENCES dbo.Account (AccountId)
 )
 
+select * from dbo.Measure
+
 insert into dbo.Measure (Description, ShortDescription, Hierarchy, State, RegistrationDate, RegistrationAccountId) values('Unidades', 'Uds', 1, '1', GETDATE(), 1);
 insert into dbo.Measure (Description, ShortDescription, Hierarchy, State, RegistrationDate, RegistrationAccountId) values('Unidad', 'Und', 2, '1', GETDATE(), 1);
 insert into dbo.Measure (Description, ShortDescription, Hierarchy, State, RegistrationDate, RegistrationAccountId) values('Caja', 'Cja', 4, '1', GETDATE(), 1);
 insert into dbo.Measure (Description, ShortDescription, Hierarchy, State, RegistrationDate, RegistrationAccountId) values('Bolsa', 'Bls', 3, '1', GETDATE(), 1);
 insert into dbo.Measure (Description, ShortDescription, Hierarchy, State, RegistrationDate, RegistrationAccountId) values('Paquete', 'Und', 5, '1', GETDATE(), 1);
-EXEC sp_fkeys 'product'
+GO
+CREATE OR ALTER PROC dbo.MeasureInsert(
+    @Description varchar(100),
+    @ShortDescription varchar(10),
+    @State char(1),
+    @RegistrationAccountId int
+)
+AS
+    DECLARE @L_Hierarchy INT = 0;
+BEGIN
+    SET @L_Hierarchy = (SELECT MAX(Hierarchy)+1 FROM dbo.Measure);
+
+    INSERT INTO dbo.Measure
+        ([Description],
+         ShortDescription,
+         [Hierarchy],
+         [State],
+         RegistrationDate,
+         RegistrationAccountId)
+    VALUES 
+        (@Description,
+         @ShortDescription,
+         @L_Hierarchy,
+         @State,
+         GETDATE(),
+         @RegistrationAccountId);
+END
+GO
 --drop table dbo.product
 CREATE TABLE dbo.Product (
     ProductId int identity(1,1) primary key not null,
@@ -680,6 +777,7 @@ BEGIN
             SubCategory = c.Description, 
             Brand = d.Description,
             Description = a.Description,
+            a.state,
             CASE WHEN a.State = '1' THEN 'Activo' ELSE 'Inactivo' END StateDescription,
             a.State,
             a.RegistrationDate
@@ -701,7 +799,7 @@ BEGIN
     INNER JOIN dbo.Measure d ON d.MeasureId = a.MeasureToId
 END
 GO
-
+select * from Measure
 CREATE OR ALTER PROC dbo.ProductPresentationGetByProductId
 (
     @productId int
@@ -709,7 +807,7 @@ CREATE OR ALTER PROC dbo.ProductPresentationGetByProductId
 AS 
 BEGIN
     SELECT 
-            EquivalentFrom = b.[Description] , a.Price 
+            EquivalentFrom = b.[Description] , a.Price, a.MeasureFromId
         FROM dbo.ProductPresentation a
     INNER JOIN dbo.Measure b ON b.MeasureId = a.MeasureFromId
     WHERE productId = @productId
@@ -791,14 +889,14 @@ BEGIN
 END
 GO
 
-
 CREATE OR ALTER PROC dbo.SalesOrderDetailInsert
 (
     @Amount int,
     @Price decimal(16,6),
     @MeasureDescription varchar(50),
     @ProductId int,
-    @SalesOrderId int
+    @SalesOrderId int,
+    @ProductPresentationId int
 )
 AS
 BEGIN   
@@ -807,13 +905,15 @@ BEGIN
             Price,
             MeasureDescription,
             ProductId,
-            SalesOrderId)
+            SalesOrderId,
+            ProductPresentationId)
            VALUES
             (@Amount,
             @Price,
             @MeasureDescription,
             @ProductId,
-            @SalesOrderId)
+            @SalesOrderId,
+            @ProductPresentationId)
 END
 GO
 
@@ -889,6 +989,24 @@ BEGIN
 END
 GO 
 
+CREATE OR ALTER PROC dbo.MeasureGetAll
+AS
+BEGIN
+    SELECT 
+            MeasureId, 
+            Description,
+            ShortDescription,
+            RegistrationDate,
+            [State],
+            CASE WHEN State = '1' THEN 'Activo' ELSE 'Inactivo' END StateDescription
+        FROM dbo.Measure
+    ORDER BY Hierarchy ASC
+END
+GO 
+
+update measure
+set state = '0'
+where [Description] = 'test1'
 CREATE OR ALTER PROC dbo.SubCategoryGetByCategoryId
 (
     @CategoryId int
@@ -923,18 +1041,6 @@ BEGIN
             Description
         FROM dbo.Brand
     WHERE State = 1
-END
-GO 
-
-CREATE OR ALTER PROC dbo.MeasureGetAll
-AS
-BEGIN
-    SELECT 
-            MeasureId, 
-            Description
-        FROM dbo.Measure
-    WHERE State = 1
-    ORDER BY Hierarchy ASC
 END
 GO 
 
