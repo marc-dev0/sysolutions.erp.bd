@@ -768,6 +768,21 @@ BEGIN
 END
 GO
 
+CREATE OR ALTER PROC ProductDelete
+(
+    @ProductId int,
+    @ModifiedAccountId int
+)
+AS 
+BEGIN
+    UPDATE dbo.Product
+        SET [State]             = '0',
+            ModifiedAccountId   = @ModifiedAccountId,
+            ModifiedDate        = GETDATE()
+    WHERE ProductId = @ProductId
+END
+GO
+
 CREATE OR ALTER PROC ProductGetAll
 AS
 BEGIN
@@ -799,7 +814,45 @@ BEGIN
     INNER JOIN dbo.Measure d ON d.MeasureId = a.MeasureToId
 END
 GO
-select * from Measure
+
+CREATE OR ALTER PROC ProductGetById
+(
+    @ProductId int
+)
+AS
+BEGIN
+    SELECT
+            a.ProductId,
+            a.CategoryId,
+            Category = b.Description,
+            a.SubCategoryId,
+            SubCategory = c.Description,
+            a.BrandId,
+            Brand = d.Description,
+            Description = a.Description,
+            a.state
+        FROM dbo.Product a
+    INNER JOIN Category b       ON b.CategoryId = a.CategoryId
+    INNER JOIN SubCategory c    ON c.CategoryId = b.CategoryId AND c.SubCategoryId = a.SubCategoryId
+    INNER JOIN Brand d          ON d.BrandId = a.BrandId
+    WHERE a.ProductId = @ProductId
+    --AND a.State = '1'
+
+    SELECT 
+            a.ProductId,
+            a.Price,
+            a.BarCode,
+            a.EquivalentQuantity,
+            EquivalentFrom =  c.[Description],
+            EquivalentTo = d.[Description]
+        FROM dbo.ProductPresentation a 
+    INNER JOIN dbo.Product b ON b.ProductId = a.ProductId
+    INNER JOIN dbo.Measure c ON c.MeasureId = a.MeasureFromId
+    INNER JOIN dbo.Measure d ON d.MeasureId = a.MeasureToId
+    WHERE a.ProductId = @ProductId
+END
+GO
+
 CREATE OR ALTER PROC dbo.ProductPresentationGetByProductId
 (
     @productId int
@@ -983,11 +1036,16 @@ AS
 BEGIN
     SELECT 
             CategoryId, 
-            Description
+            Description,
+            RegistrationDate,
+            [State],
+            CASE WHEN State = '1' THEN 'Activo' ELSE 'Inactivo' END StateDescription
         FROM dbo.Category
-    WHERE State = 1
+    --WHERE State = 1
 END
 GO 
+
+select * from Product
 
 CREATE OR ALTER PROC dbo.MeasureGetAll
 AS
@@ -1004,9 +1062,6 @@ BEGIN
 END
 GO 
 
-update measure
-set state = '0'
-where [Description] = 'test1'
 CREATE OR ALTER PROC dbo.SubCategoryGetByCategoryId
 (
     @CategoryId int
@@ -1014,11 +1069,27 @@ CREATE OR ALTER PROC dbo.SubCategoryGetByCategoryId
 AS
 BEGIN
     SELECT 
-            SubCategoryId, 
-            Description
-        FROM dbo.SubCategory
-    WHERE CategoryId = @CategoryId
+            a.SubCategoryId, 
+            a.Description
+        FROM dbo.SubCategory a
+    WHERE a.CategoryId = @CategoryId
     AND State = 1
+END
+GO 
+
+CREATE OR ALTER PROC dbo.SubCategoryGetAll
+AS
+BEGIN
+    SELECT 
+            CategoryDescription = b.[Description],
+            a.SubCategoryId, 
+            a.Description,
+            a.RegistrationDate,
+            a.[State],
+            CASE WHEN a.State = '1' THEN 'Activo' ELSE 'Inactivo' END StateDescription
+        FROM dbo.SubCategory a
+    INNER JOIN dbo.Category b ON b.CategoryId = a.CategoryId
+    --AND State = 1
 END
 GO 
 
@@ -1038,9 +1109,12 @@ AS
 BEGIN
     SELECT 
             BrandId, 
-            Description
+            Description,
+            RegistrationDate,
+            [State],
+            CASE WHEN State = '1' THEN 'Activo' ELSE 'Inactivo' END StateDescription
         FROM dbo.Brand
-    WHERE State = 1
+    --WHERE State = 1
 END
 GO 
 
