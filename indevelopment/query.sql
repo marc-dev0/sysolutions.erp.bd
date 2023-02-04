@@ -657,7 +657,7 @@ CREATE TYPE ProductPresentationList as Table (
 GO
 
 declare 
-	@productId int = 0,
+	@productId int = 5,
 	@Description varchar(200) = 'Product1',
 	@Code varchar(100) = '132',
 	@CategoryId int = 1,
@@ -667,18 +667,92 @@ declare
 	@AccountId int = 1,
 	@ProductPresentationList AS dbo.ProductPresentationList
 begin
-	insert @ProductPresentationList (EquivalentQuantity, Price, BarCode, MeasureFromId, MeasureToId)
-	values (5, 13.50, '100032423', 1, 1)
-	insert @ProductPresentationList (EquivalentQuantity, Price, BarCode, MeasureFromId, MeasureToId)
-	values (4, 15, '104477ds1', 3, 2)
+	insert @ProductPresentationList (Id,EquivalentQuantity, Price, BarCode, MeasureFromId, MeasureToId)
+	values (8, 5, 13.50, '100032423', 1, 1)
+	insert @ProductPresentationList (Id,EquivalentQuantity, Price, BarCode, MeasureFromId, MeasureToId)
+	values (9, 4, 15, '104477ds1', 3, 2)
+    insert @ProductPresentationList (Id,EquivalentQuantity, Price, BarCode, MeasureFromId, MeasureToId)
+	values (0, 4, 15, '104477ds1', 3, 2)
 	exec dbo.ProductInsert @productId, @Description, @Code, @CategoryId, @SubCategoryId, @BrandId,
 			@State, @AccountId, @ProductPresentationList
 end
 GO
-SELECT * FROM Product
-select * from ProductPresentation
+
+CREATE OR ALTER PROC dbo.ProductUpdate
+(
+    @ProductId int,
+    @Description varchar(200),
+    @Code varchar(100),
+    @CategoryId int,
+    @SubCategoryId int,
+    @BrandId int,
+    @State char(1),
+    @ModifiedAccountId int,
+    @ProductPresentationList ProductPresentationList READONLY
+)
+AS
+    DECLARE @l_exists_presentation int = 0;
+    DECLARE @Id int, @EquivalentQuantity int, @Price decimal(16,6), @Barcode varchar(15), @MeasureFromId int, @MeasureToId int
+BEGIN
+    UPDATE dbo.Product
+        SET [Description]       = @Description,
+            Code                = @Code,
+            CategoryId          = @CategoryId,
+            SubCategoryId       = @SubCategoryId,
+            BrandId             = @BrandId,
+            [State]             = @State,
+            ModifiedDate        = GETDATE(),
+            ModifiedAccountId   = @ModifiedAccountId
+    WHERE ProductId             = @ProductId
+
+    DECLARE Cursor1 CURSOR FOR 
+        SELECT Id, EquivalentQuantity, Price, BarCode, MeasureFromId, MeasureToId FROM @ProductPresentationList
+
+        OPEN Cursor1 
+            FETCH Cursor1 INTO @Id, @EquivalentQuantity, @Price, @Barcode, @MeasureFromId, @MeasureToId
+
+        WHILE @@FETCH_STATUS = 0
+            BEGIN
+                SET @l_exists_presentation = (
+                    SELECT COUNT(*) FROM dbo.ProductPresentation WHERE ProductId = @ProductId AND ProductPresentationId = @id
+                )
+
+                IF @l_exists_presentation > 0 
+                    BEGIN
+                        UPDATE dbo.ProductPresentation
+                            SET EquivalentQuantity      = @EquivalentQuantity,
+                                Price                   = @Price,
+                                BarCode                 = @Barcode,
+                                MeasureFromId           = @MeasureFromId,
+                                MeasureToId             = @MeasureToId
+                        WHERE ProductId             = @ProductId
+                        AND ProductPresentationId   = @Id
+                    END
+                ELSE 
+                    BEGIN
+                        INSERT INTO dbo.ProductPresentation 
+                                    (EquivalentQuantity,
+                                    Price,
+                                    BarCode,
+                                    MeasureFromId,
+                                    MeasureToId,
+                                    ProductId)
+                        VALUES      
+                                    (@EquivalentQuantity,
+                                    @Price,
+                                    @BarCode,
+                                    @MeasureFromId,
+                                    @MeasureToId,
+                                    @ProductId)
+                    END
+            FETCH Cursor1 INTO @Id, @EquivalentQuantity, @Price, @Barcode, @MeasureFromId, @MeasureToId
+        END
+        CLOSE Cursor1
+        DEALLOCATE Cursor1   
+END
 GO
-CREATE OR ALTER PROC dbo.ProductInsert
+
+CREATE OR ALTER PROC dbo.ProductInsertUpdate
 (
     @ProductId int,
     @Description varchar(200),
@@ -698,9 +772,11 @@ CREATE OR ALTER PROC dbo.ProductInsert
     @ProductPresentationList ProductPresentationList READONLY
 )
 AS 
-    DECLARE @L_ProductId int = 0
+    DECLARE @L_ProductId int = 0;
+    DECLARE @l_exists_presentation int = 0;
     DECLARE @Id int, @EquivalentQuantity int, @Price decimal(16,6), @Barcode varchar(15), @MeasureFromId int, @MeasureToId int
 BEGIN
+PRINT 'UPDATE'
     IF @ProductId = 0 
         BEGIN
             INSERT INTO dbo.Product 
@@ -752,18 +828,62 @@ BEGIN
         END
     ELSE 
         BEGIN
+            PRINT 'UPDATE'
             UPDATE dbo.Product
-                SET [Description]   = @Description,
-                    Code            = @Code,
-                    CategoryId      = @CategoryId,
-                    SubCategoryId   = @SubCategoryId,
-                    BrandId         = @BrandId,
-                    [State]         = @State,
-                    ModifiedDate    = GETDATE(),
-                    ModifiedAccountId = @AccountId
-            WHERE ProductId         = @ProductId
+                SET [Description]       = @Description,
+                    Code                = @Code,
+                    CategoryId          = @CategoryId,
+                    SubCategoryId       = @SubCategoryId,
+                    BrandId             = @BrandId,
+                    [State]             = @State,
+                    ModifiedDate        = GETDATE(),
+                    ModifiedAccountId   = @AccountId
+            WHERE ProductId             = @ProductId
 
-            --UPDATE dbo.ProductPresentation                  
+            DECLARE Cursor1 CURSOR FOR 
+                SELECT Id, EquivalentQuantity, Price, BarCode, MeasureFromId, MeasureToId FROM @ProductPresentationList
+
+                OPEN Cursor1 
+                    FETCH Cursor1 INTO @Id, @EquivalentQuantity, @Price, @Barcode, @MeasureFromId, @MeasureToId
+
+                WHILE @@FETCH_STATUS = 0
+                    BEGIN
+                       SET @l_exists_presentation = (
+                            SELECT COUNT(*) FROM dbo.ProductPresentation WHERE ProductId = @ProductId AND ProductPresentationId = @id
+                        )
+
+                        IF @l_exists_presentation > 0 
+                            BEGIN
+                                UPDATE dbo.ProductPresentation
+                                    SET EquivalentQuantity      = @EquivalentQuantity,
+                                        Price                   = @Price,
+                                        BarCode                 = @Barcode,
+                                        MeasureFromId           = @MeasureFromId,
+                                        MeasureToId             = @MeasureToId
+                                WHERE ProductId             = @ProductId
+                                AND ProductPresentationId   = @Id
+                            END
+                        ELSE 
+                            BEGIN
+                                INSERT INTO dbo.ProductPresentation 
+                                            (EquivalentQuantity,
+                                            Price,
+                                            BarCode,
+                                            MeasureFromId,
+                                            MeasureToId,
+                                            ProductId)
+                                VALUES      
+                                            (@EquivalentQuantity,
+                                            @Price,
+                                            @BarCode,
+                                            @MeasureFromId,
+                                            @MeasureToId,
+                                            @ProductId)
+                            END
+                    FETCH Cursor1 INTO @Id, @EquivalentQuantity, @Price, @Barcode, @MeasureFromId, @MeasureToId
+                END
+                CLOSE Cursor1
+                DEALLOCATE Cursor1          
         END
 END
 GO
@@ -839,6 +959,7 @@ BEGIN
     --AND a.State = '1'
 
     SELECT 
+            a.ProductPresentationId,
             a.ProductId,
             a.Price,
             a.BarCode,
