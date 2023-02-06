@@ -668,12 +668,10 @@ declare
 	@ProductPresentationList AS dbo.ProductPresentationList
 begin
 	insert @ProductPresentationList (Id,EquivalentQuantity, Price, BarCode, MeasureFromId, MeasureToId)
-	values (8, 5, 13.50, '100032423', 1, 1)
-	insert @ProductPresentationList (Id,EquivalentQuantity, Price, BarCode, MeasureFromId, MeasureToId)
-	values (9, 4, 15, '104477ds1', 3, 2)
+	values (10, 5, 13.50, '100032423', 1, 1)
     insert @ProductPresentationList (Id,EquivalentQuantity, Price, BarCode, MeasureFromId, MeasureToId)
 	values (0, 4, 15, '104477ds1', 3, 2)
-	exec dbo.ProductInsert @productId, @Description, @Code, @CategoryId, @SubCategoryId, @BrandId,
+	exec dbo.ProductInsertUpdate @productId, @Description, @Code, @CategoryId, @SubCategoryId, @BrandId,
 			@State, @AccountId, @ProductPresentationList
 end
 GO
@@ -762,13 +760,6 @@ CREATE OR ALTER PROC dbo.ProductInsertUpdate
     @BrandId int,
     @State char(1),
     @AccountId int,
-    --ProductPresentation
-    /*@ProductPresentationId int,
-    @EquivalentQuantity int,
-    @Price decimal(16,6),
-    @BarCode varchar(15),
-    @MeasureFromId int,
-    @MeasureToId int*/
     @ProductPresentationList ProductPresentationList READONLY
 )
 AS 
@@ -776,7 +767,6 @@ AS
     DECLARE @l_exists_presentation int = 0;
     DECLARE @Id int, @EquivalentQuantity int, @Price decimal(16,6), @Barcode varchar(15), @MeasureFromId int, @MeasureToId int
 BEGIN
-PRINT 'UPDATE'
     IF @ProductId = 0 
         BEGIN
             INSERT INTO dbo.Product 
@@ -851,7 +841,7 @@ PRINT 'UPDATE'
                        SET @l_exists_presentation = (
                             SELECT COUNT(*) FROM dbo.ProductPresentation WHERE ProductId = @ProductId AND ProductPresentationId = @id
                         )
-
+                        print @l_exists_presentation
                         IF @l_exists_presentation > 0 
                             BEGIN
                                 UPDATE dbo.ProductPresentation
@@ -964,6 +954,8 @@ BEGIN
             a.Price,
             a.BarCode,
             a.EquivalentQuantity,
+            a.MeasureFromId,
+            a.MeasureToId,
             EquivalentFrom =  c.[Description],
             EquivalentTo = d.[Description]
         FROM dbo.ProductPresentation a 
@@ -1239,5 +1231,140 @@ BEGIN
 END
 GO 
 
-SELECT * FROM Product
-SELECT * FROM PRODUCT
+--DROP TABLE dbo.Storage
+CREATE TABLE dbo.Storage (
+    StorageId int IDENTITY(1,1) primary key not null,
+    Description varchar(100),
+    Location varchar(100),
+    CompanyId int,
+    State char(1),--1:Activo, 2: Inactivo
+    RegistrationAccountId int NULL,
+    ModifiedAccountId int NULL,
+    RegistrationDate datetime NULL,
+    ModifiedDate datetime NULL,
+    CONSTRAINT FK__Storage__RegistrationAccountId__6B79F03D FOREIGN KEY (RegistrationAccountId) REFERENCES dbo.Account (AccountId),
+    CONSTRAINT FK__Storage__ModifiedAccountId__6B79F03D FOREIGN KEY (ModifiedAccountId) REFERENCES dbo.Account (AccountId)
+)
+GO
+
+CREATE OR ALTER PROC dbo.StorageInsert(
+    @Description varchar(100),
+    @Location varchar(100),
+    @State char(1),
+    @RegistrationAccountId int
+)
+AS
+BEGIN
+
+    INSERT INTO dbo.Storage
+        ([Description],
+         [Location],
+         [State],
+         RegistrationDate,
+         RegistrationAccountId)
+    VALUES 
+        (@Description,
+         @Location,
+         @State,
+         GETDATE(),
+         @RegistrationAccountId);
+END
+GO 
+
+CREATE OR ALTER PROC dbo.StorageGetAll
+AS
+BEGIN
+    SELECT 
+            StorageId, 
+            Description,
+            [Location],
+            RegistrationDate,
+            [State],
+            CASE WHEN State = '1' THEN 'Activo' ELSE 'Inactivo' END StateDescription
+        FROM dbo.Storage    
+END
+GO 
+
+--DROP TABLE dbo.StorageProduct
+CREATE TABLE dbo.StorageProduct (
+    Quantity int,
+    StorageId int,
+    ProductId int,
+    ProductPresentationId int,
+    RegistrationAccountId int NULL,
+    ModifiedAccountId int NULL,
+    RegistrationDate datetime NULL,
+    ModifiedDate datetime NULL,
+    CONSTRAINT FK__StorageProduct__RegistrationAccountId__6B79F03D FOREIGN KEY (RegistrationAccountId) REFERENCES dbo.Account (AccountId),
+    CONSTRAINT FK__StorageProduct__ModifiedAccountId__6B79F03D FOREIGN KEY (ModifiedAccountId) REFERENCES dbo.Account (AccountId),
+    CONSTRAINT PK__StorageProduct_PK PRIMARY KEY (StorageId, ProductId, ProductPresentationId)
+)   
+
+DELETE FROM DBO.StorageProduct
+INSERT INTO dbo.StorageProduct
+SELECT 
+        ABS(CHECKSUM(NEWID()) % 10), 1, a.ProductId, b.ProductPresentationId, 1, NULL, GETDATE(), NULL     
+    FROM dbo.Product a 
+    INNER JOIN dbo.ProductPresentation b on b.ProductId = a.ProductId
+
+select 0, 1, a.ProductId, b.ProductPresentationId, 1, NULL, GETDATE(), NULL
+FROM dbo.Product a 
+    INNER JOIN dbo.ProductPresentation b on b.ProductId = a.ProductId
+
+
+    select * from dbo.ProductPresentation
+    select * from dbo.StorageProduct
+GO
+
+CREATE OR ALTER PROC dbo.StorageProductGetByStorageId
+(
+    @StorageId int,
+    @CategoryId int,
+    @SubCategoryId int,
+    @Description varchar(200)
+)
+AS
+BEGIN
+    SELECT 
+            c.EquivalentQuantity,
+            a.Quantity, 
+            b.ProductId, 
+            ProductDescription = b.[Description], 
+            c.MeasureFromId, 
+            EquivalentFrom = d.[Description],
+            CategoryBelongs = CONCAT(e.[Description], ' / ', f.[Description]),
+            InventoryStatus = (
+                CASE WHEN a.Quantity <= 0 THEN 'OUTOFSTOCK' 
+                     WHEN a.Quantity >=1 AND a.Quantity < 20 THEN 'LOWSTOCK' 
+                     ELSE 'INSTOCK' END)
+        FROM dbo.StorageProduct a
+    INNER JOIN dbo.Product b on b.ProductId = a.ProductId
+    INNER JOIN dbo.ProductPresentation c on c.ProductId = b.ProductId AND c.ProductPresentationId = a.ProductPresentationId
+    INNER JOIN dbo.Measure d on d.MeasureId = c.MeasureFromId
+    INNER JOIN dbo.Category e on e.CategoryId = b.CategoryId
+    INNER JOIN dbo.SubCategory f on f.CategoryId = e.CategoryId AND f.SubCategoryId = b.SubCategoryId
+    WHERE a.StorageId               = @StorageId
+    AND (e.CategoryId               = @CategoryId       OR @CategoryId      = 0)
+    AND (f.SubCategoryId            = @SubCategoryId    OR @SubCategoryId   = 0)
+    AND (LOWER(b.[Description])     LIKE '%' + LOWER(@Description) + '%'      
+                                    OR @Description     IS NULL)
+END
+
+exec StorageProductGetByStorageId 1
+
+select * from dbo.product
+
+
+SELECT 
+*
+        FROM dbo.StorageProduct a
+    INNER JOIN dbo.Product b on b.ProductId = a.ProductId
+    INNER JOIN dbo.ProductPresentation c on c.ProductId = b.ProductId AND c.ProductPresentationId = a.ProductPresentationId
+    INNER JOIN dbo.Measure d on d.MeasureId = c.MeasureFromId
+    INNER JOIN dbo.Category e on e.CategoryId = b.CategoryId
+    INNER JOIN dbo.SubCategory f on f.CategoryId = e.CategoryId AND f.SubCategoryId = b.SubCategoryId
+
+    SELECT * FROM StorageProduct
+    SELECT * FROM DBO.PRODUCT
+    SELECT * FROM Category
+    select * from SubCategory
