@@ -26,7 +26,7 @@ CREATE TABLE dbo.Account (
     CONSTRAINT FK__User__RegistrationUserId__6B79F03D FOREIGN KEY (RegistrationAccountId) REFERENCES dbo.Account (AccountId),
     CONSTRAINT FK__User__ModifiedUserId__6B79F03D FOREIGN KEY (ModifiedAccountId) REFERENCES dbo.Account (AccountId)
 )
-
+GO
 
 CREATE TABLE dbo.Profile (
     ProfileId int IDENTITY(1,1) primary key not null,
@@ -39,13 +39,7 @@ CREATE TABLE dbo.Profile (
     CONSTRAINT FK__Profile__RegistrationAccountId__6B79F03D FOREIGN KEY (RegistrationAccountId) REFERENCES dbo.Account (AccountId),
     CONSTRAINT FK__Profile__ModifiedAccountId__6B79F03D FOREIGN KEY (ModifiedAccountId) REFERENCES dbo.Account (AccountId)
 )
-
-
-INSERT INTO Account VALUES('MARC', '1234', 'MIGUEL ANGEL', 'ROJAS CORAJE', '93334444', 'CORREO', '44413254', '1', 1, GETDATE(), NULL, NULL, NULL)
-
-
-INSERT INTO Profile VALUES('ADMINISTRADOR', '1', NULL, NULL, GETDATE(), NULL)
-INSERT INTO Profile VALUES('VENDEDOR', '1', NULL, NULL, GETDATE(), NULL)
+GO
 
 --DROP TABLE dbo.UserProfile
 CREATE TABLE dbo.AccountProfile (
@@ -60,7 +54,7 @@ CREATE TABLE dbo.AccountProfile (
     CONSTRAINT FK__UserProfile__ModifiedAccountId__6B79F03D FOREIGN KEY (ModifiedAccountId) REFERENCES dbo.Account (AccountId)
 )
 
-INSERT INTO AccountProfile VALUES (1, 1, 1, NULL, '1', GETDATE(), NULL)
+
 GO
 
 CREATE OR ALTER PROC ProfileGetAll
@@ -240,11 +234,6 @@ CREATE TABLE dbo.Category (
     CONSTRAINT FK__Category__ModifiedUserId__6B79F03D FOREIGN KEY (ModifiedAccountId) REFERENCES dbo.Account (AccountId)
 )
 GO
-insert into Category (Description, State, RegistrationDate, RegistrationAccountId)
-              values ('GENERAL', '1', GETDATE(), 1)
-insert into Category (Description, State, RegistrationDate, RegistrationAccountId)
-              values ('TEST1', '1', GETDATE(), 1)
-GO
 
 CREATE OR ALTER PROC dbo.CategoryInsert(
     @Description varchar(100),
@@ -304,98 +293,6 @@ BEGIN
          GETDATE(),
          @RegistrationAccountId);
 END
-GO  
-
-insert into dbo.SubCategory (Description, State, CategoryId, RegistrationDate, RegistrationAccountId) values('CONSERVE','1',2,GETDATE(),1)
-insert into dbo.SubCategory (Description, State, CategoryId, RegistrationDate, RegistrationAccountId) values('CERVEZA','1',1,GETDATE(),1)
-insert into dbo.SubCategory (Description, State, CategoryId, RegistrationDate, RegistrationAccountId) values('CHOCOLATE','1',1,GETDATE(),1)
-insert into dbo.SubCategory (Description, State, CategoryId, RegistrationDate, RegistrationAccountId) values('PANETON','1',1,GETDATE(),1)
-insert into dbo.SubCategory (Description, State, CategoryId, RegistrationDate, RegistrationAccountId) values('INTEGRALES','1',1,GETDATE(),1)
-insert into dbo.SubCategory (Description, State, CategoryId, RegistrationDate, RegistrationAccountId) values('CREMA DE LECHE','1',1,GETDATE(),1)
-insert into dbo.SubCategory (Description, State, CategoryId, RegistrationDate, RegistrationAccountId) values('HOT DOG','1',1,GETDATE(),1)
-insert into dbo.SubCategory (Description, State, CategoryId, RegistrationDate, RegistrationAccountId) values('BARQUILLO','1',1,GETDATE(),1)
-insert into dbo.SubCategory (Description, State, CategoryId, RegistrationDate, RegistrationAccountId) values('FRUTOS SECOS','1',1,GETDATE(),1)
-insert into dbo.SubCategory (Description, State, CategoryId, RegistrationDate, RegistrationAccountId) values('WAFER NIK','1',1,GETDATE(),1)
-insert into dbo.SubCategory (Description, State, CategoryId, RegistrationDate, RegistrationAccountId) values('CARAMELO','1',1,GETDATE(),1)
-insert into dbo.SubCategory (Description, State, CategoryId, RegistrationDate, RegistrationAccountId) values('LICORES','1',1,GETDATE(),1)
-insert into dbo.SubCategory (Description, State, CategoryId, RegistrationDate, RegistrationAccountId) values('MUSS','1',1,GETDATE(),1)
-insert into dbo.SubCategory (Description, State, CategoryId, RegistrationDate, RegistrationAccountId) values('ENERGIZANTE','1',1,GETDATE(),1)
-insert into dbo.SubCategory (Description, State, CategoryId, RegistrationDate, RegistrationAccountId) values('WAFER','1',1,GETDATE(),1)
-insert into dbo.SubCategory (Description, State, CategoryId, RegistrationDate, RegistrationAccountId) values('CEREAL','1',1,GETDATE(),1)
-insert into dbo.SubCategory (Description, State, CategoryId, RegistrationDate, RegistrationAccountId) values('GOMAS AMBROSITO','1',1,GETDATE(),1)
-insert into dbo.SubCategory (Description, State, CategoryId, RegistrationDate, RegistrationAccountId) values('LECHE','1',1,GETDATE(),1)
-insert into dbo.SubCategory (Description, State, CategoryId, RegistrationDate, RegistrationAccountId) values('CHUPETES','1',1,GETDATE(),1)
-insert into dbo.SubCategory (Description, State, CategoryId, RegistrationDate, RegistrationAccountId) values('GOMITAS','1',1,GETDATE(),1)
-insert into dbo.SubCategory (Description, State, CategoryId, RegistrationDate, RegistrationAccountId) values('WAFFERS','1',1,GETDATE(),1)
-insert into dbo.SubCategory (Description, State, CategoryId, RegistrationDate, RegistrationAccountId) values('CARAMELOS BLANDOS','1',1,GETDATE(),1)
-insert into dbo.SubCategory (Description, State, CategoryId, RegistrationDate, RegistrationAccountId) values('BOMBONES','1',1,GETDATE(),1)
-insert into dbo.SubCategory (Description, State, CategoryId, RegistrationDate, RegistrationAccountId) values('TRIFRUNA','1',1,GETDATE(),1)
-insert into dbo.SubCategory (Description, State, CategoryId, RegistrationDate, RegistrationAccountId) values('VINO','1',1,GETDATE(),1)
-insert into dbo.SubCategory (Description, State, CategoryId, RegistrationDate, RegistrationAccountId) values('GOMITA','1',1,GETDATE(),1)
-insert into dbo.SubCategory (Description, State, CategoryId, RegistrationDate, RegistrationAccountId) values('GALLETA FRAC CHOCOLATE','1',1,GETDATE(),1)
-insert into dbo.SubCategory (Description, State, CategoryId, RegistrationDate, RegistrationAccountId) values('MEGA  BARRA','1',1,GETDATE(),1)
-insert into dbo.SubCategory (Description, State, CategoryId, RegistrationDate, RegistrationAccountId) values('CARAMELOS MASTICABLES','1',1,GETDATE(),1)
-insert into dbo.SubCategory (Description, State, CategoryId, RegistrationDate, RegistrationAccountId) values('CHUPETIN COLORADO','1',1,GETDATE(),1)
-insert into dbo.SubCategory (Description, State, CategoryId, RegistrationDate, RegistrationAccountId) values('CEREAL BAR','1',1,GETDATE(),1)
-insert into dbo.SubCategory (Description, State, CategoryId, RegistrationDate, RegistrationAccountId) values('MASTICABLE','1',1,GETDATE(),1)
-insert into dbo.SubCategory (Description, State, CategoryId, RegistrationDate, RegistrationAccountId) values('KEKE','1',1,GETDATE(),1)
-insert into dbo.SubCategory (Description, State, CategoryId, RegistrationDate, RegistrationAccountId) values('TURRON','1',1,GETDATE(),1)
-insert into dbo.SubCategory (Description, State, CategoryId, RegistrationDate, RegistrationAccountId) values('TAPER GLOBO POP 18G','1',1,GETDATE(),1)
-insert into dbo.SubCategory (Description, State, CategoryId, RegistrationDate, RegistrationAccountId) values('MELLOWS','1',1,GETDATE(),1)
-insert into dbo.SubCategory (Description, State, CategoryId, RegistrationDate, RegistrationAccountId) values('CHAMPAGNE','1',1,GETDATE(),1)
-insert into dbo.SubCategory (Description, State, CategoryId, RegistrationDate, RegistrationAccountId) values('GOMAS CALIPTUS','1',1,GETDATE(),1)
-insert into dbo.SubCategory (Description, State, CategoryId, RegistrationDate, RegistrationAccountId) values('FRUNA','1',1,GETDATE(),1)
-insert into dbo.SubCategory (Description, State, CategoryId, RegistrationDate, RegistrationAccountId) values('PAPA','1',1,GETDATE(),1)
-insert into dbo.SubCategory (Description, State, CategoryId, RegistrationDate, RegistrationAccountId) values('AZUCAR RUBIA','1',1,GETDATE(),1)
-insert into dbo.SubCategory (Description, State, CategoryId, RegistrationDate, RegistrationAccountId) values('NACHO','1',1,GETDATE(),1)
-insert into dbo.SubCategory (Description, State, CategoryId, RegistrationDate, RegistrationAccountId) values('CHOCOLATE VIZZIO','1',1,GETDATE(),1)
-insert into dbo.SubCategory (Description, State, CategoryId, RegistrationDate, RegistrationAccountId) values('TOFFEE','1',1,GETDATE(),1)
-insert into dbo.SubCategory (Description, State, CategoryId, RegistrationDate, RegistrationAccountId) values('GOMAS DE MASCAR','1',1,GETDATE(),1)
-insert into dbo.SubCategory (Description, State, CategoryId, RegistrationDate, RegistrationAccountId) values('MEGA CHOC','1',1,GETDATE(),1)
-insert into dbo.SubCategory (Description, State, CategoryId, RegistrationDate, RegistrationAccountId) values('GALLETAS','1',1,GETDATE(),1)
-insert into dbo.SubCategory (Description, State, CategoryId, RegistrationDate, RegistrationAccountId) values('CHICLE','1',1,GETDATE(),1)
-insert into dbo.SubCategory (Description, State, CategoryId, RegistrationDate, RegistrationAccountId) values('MARSHMALLOW','1',1,GETDATE(),1)
-insert into dbo.SubCategory (Description, State, CategoryId, RegistrationDate, RegistrationAccountId) values('NECTAR','1',1,GETDATE(),1)
-insert into dbo.SubCategory (Description, State, CategoryId, RegistrationDate, RegistrationAccountId) values('YOGURT','1',1,GETDATE(),1)
-insert into dbo.SubCategory (Description, State, CategoryId, RegistrationDate, RegistrationAccountId) values('BROWNIE','1',1,GETDATE(),1)
-insert into dbo.SubCategory (Description, State, CategoryId, RegistrationDate, RegistrationAccountId) values('PALETAS','1',1,GETDATE(),1)
-insert into dbo.SubCategory (Description, State, CategoryId, RegistrationDate, RegistrationAccountId) values('CHUPETE','1',1,GETDATE(),1)
-insert into dbo.SubCategory (Description, State, CategoryId, RegistrationDate, RegistrationAccountId) values('GALLETA GRAN CEREAL','1',1,GETDATE(),1)
-insert into dbo.SubCategory (Description, State, CategoryId, RegistrationDate, RegistrationAccountId) values('MALTIN','1',1,GETDATE(),1)
-insert into dbo.SubCategory (Description, State, CategoryId, RegistrationDate, RegistrationAccountId) values('GOMAS','1',1,GETDATE(),1)
-insert into dbo.SubCategory (Description, State, CategoryId, RegistrationDate, RegistrationAccountId) values('PISCO','1',1,GETDATE(),1)
-insert into dbo.SubCategory (Description, State, CategoryId, RegistrationDate, RegistrationAccountId) values('ARROZ PACAMAYO','1',1,GETDATE(),1)
-insert into dbo.SubCategory (Description, State, CategoryId, RegistrationDate, RegistrationAccountId) values('MASMELOS','1',1,GETDATE(),1)
-insert into dbo.SubCategory (Description, State, CategoryId, RegistrationDate, RegistrationAccountId) values('HELADITO','1',1,GETDATE(),1)
-insert into dbo.SubCategory (Description, State, CategoryId, RegistrationDate, RegistrationAccountId) values('GALLETA','1',1,GETDATE(),1)
-insert into dbo.SubCategory (Description, State, CategoryId, RegistrationDate, RegistrationAccountId) values('ACEITE DELEITE','1',1,GETDATE(),1)
-insert into dbo.SubCategory (Description, State, CategoryId, RegistrationDate, RegistrationAccountId) values('CHOCOLATES','1',1,GETDATE(),1)
-insert into dbo.SubCategory (Description, State, CategoryId, RegistrationDate, RegistrationAccountId) values('MINI MELLOWS','1',1,GETDATE(),1)
-insert into dbo.SubCategory (Description, State, CategoryId, RegistrationDate, RegistrationAccountId) values('SNACK COSTA','1',1,GETDATE(),1)
-insert into dbo.SubCategory (Description, State, CategoryId, RegistrationDate, RegistrationAccountId) values('MANJAR BLANCO','1',1,GETDATE(),1)
-insert into dbo.SubCategory (Description, State, CategoryId, RegistrationDate, RegistrationAccountId) values('BIZCOCHO','1',1,GETDATE(),1)
-insert into dbo.SubCategory (Description, State, CategoryId, RegistrationDate, RegistrationAccountId) values('JUGO','1',1,GETDATE(),1)
-insert into dbo.SubCategory (Description, State, CategoryId, RegistrationDate, RegistrationAccountId) values('MANTEQUILLA','1',1,GETDATE(),1)
-insert into dbo.SubCategory (Description, State, CategoryId, RegistrationDate, RegistrationAccountId) values('DULCES GENERICOS','1',1,GETDATE(),1)
-insert into dbo.SubCategory (Description, State, CategoryId, RegistrationDate, RegistrationAccountId) values('CIGARRO','1',1,GETDATE(),1)
-insert into dbo.SubCategory (Description, State, CategoryId, RegistrationDate, RegistrationAccountId) values('SPLOT','1',1,GETDATE(),1)
-insert into dbo.SubCategory (Description, State, CategoryId, RegistrationDate, RegistrationAccountId) values('ALCOHOL ET','1',1,GETDATE(),1)
-insert into dbo.SubCategory (Description, State, CategoryId, RegistrationDate, RegistrationAccountId) values('OLD ENGLAND TOFFEE','1',1,GETDATE(),1)
-insert into dbo.SubCategory (Description, State, CategoryId, RegistrationDate, RegistrationAccountId) values('GALLETA GRETEL','1',1,GETDATE(),1)
-insert into dbo.SubCategory (Description, State, CategoryId, RegistrationDate, RegistrationAccountId) values('BOX BOMBON','1',1,GETDATE(),1)
-insert into dbo.SubCategory (Description, State, CategoryId, RegistrationDate, RegistrationAccountId) values('CHOCOLATE RELLENO','1',1,GETDATE(),1)
-insert into dbo.SubCategory (Description, State, CategoryId, RegistrationDate, RegistrationAccountId) values('QUESO MOZARELLA','1',1,GETDATE(),1)
-insert into dbo.SubCategory (Description, State, CategoryId, RegistrationDate, RegistrationAccountId) values('AGUA','1',1,GETDATE(),1)
-insert into dbo.SubCategory (Description, State, CategoryId, RegistrationDate, RegistrationAccountId) values('BOCADITOS','1',1,GETDATE(),1)
-insert into dbo.SubCategory (Description, State, CategoryId, RegistrationDate, RegistrationAccountId) values('BEBIDA REHIDRATANTE','1',1,GETDATE(),1)
-insert into dbo.SubCategory (Description, State, CategoryId, RegistrationDate, RegistrationAccountId) values('WAFER CLASICO','1',1,GETDATE(),1)
-insert into dbo.SubCategory (Description, State, CategoryId, RegistrationDate, RegistrationAccountId) values('BEBIDA','1',1,GETDATE(),1)
-insert into dbo.SubCategory (Description, State, CategoryId, RegistrationDate, RegistrationAccountId) values('RON','1',1,GETDATE(),1)
-insert into dbo.SubCategory (Description, State, CategoryId, RegistrationDate, RegistrationAccountId) values('IMPORTADOS','1',1,GETDATE(),1)
-insert into dbo.SubCategory (Description, State, CategoryId, RegistrationDate, RegistrationAccountId) values('GASEOSA','1',1,GETDATE(),1)
-insert into dbo.SubCategory (Description, State, CategoryId, RegistrationDate, RegistrationAccountId) values('CARAMELOS','1',1,GETDATE(),1)
-insert into dbo.SubCategory (Description, State, CategoryId, RegistrationDate, RegistrationAccountId) values('SNACKS','1',1,GETDATE(),1)
-insert into dbo.SubCategory (Description, State, CategoryId, RegistrationDate, RegistrationAccountId) values('LECHE EVAPORADA','1',1,GETDATE(),1)
 GO
 
 CREATE TABLE dbo.Brand (
@@ -432,123 +329,6 @@ BEGIN
 END
 GO  
 
-insert into dbo.Brand (Description, State, RegistrationDate, RegistrationAccountId) values('ACONCAGUA','1',GETDATE(),1)
-insert into dbo.Brand (Description, State, RegistrationDate, RegistrationAccountId) values('HELENA','1',GETDATE(),1)
-insert into dbo.Brand (Description, State, RegistrationDate, RegistrationAccountId) values('JAZAM','1',GETDATE(),1)
-insert into dbo.Brand (Description, State, RegistrationDate, RegistrationAccountId) values('CHOCOLATE','1',GETDATE(),1)
-insert into dbo.Brand (Description, State, RegistrationDate, RegistrationAccountId) values('DULZURA','1',GETDATE(),1)
-insert into dbo.Brand (Description, State, RegistrationDate, RegistrationAccountId) values('CROCANTES DEL NORTE','1',GETDATE(),1)
-insert into dbo.Brand (Description, State, RegistrationDate, RegistrationAccountId) values('CRAF','1',GETDATE(),1)
-insert into dbo.Brand (Description, State, RegistrationDate, RegistrationAccountId) values('CRUCEÑITO','1',GETDATE(),1)
-insert into dbo.Brand (Description, State, RegistrationDate, RegistrationAccountId) values('KRAFF','1',GETDATE(),1)
-insert into dbo.Brand (Description, State, RegistrationDate, RegistrationAccountId) values('NATURAL','1',GETDATE(),1)
-insert into dbo.Brand (Description, State, RegistrationDate, RegistrationAccountId) values('SOY DIET','1',GETDATE(),1)
-insert into dbo.Brand (Description, State, RegistrationDate, RegistrationAccountId) values('KOLA REAL','1',GETDATE(),1)
-insert into dbo.Brand (Description, State, RegistrationDate, RegistrationAccountId) values('PANADERIA ISIDRO','1',GETDATE(),1)
-insert into dbo.Brand (Description, State, RegistrationDate, RegistrationAccountId) values('FERRERO ROCHER','1',GETDATE(),1)
-insert into dbo.Brand (Description, State, RegistrationDate, RegistrationAccountId) values('ANY','1',GETDATE(),1)
-insert into dbo.Brand (Description, State, RegistrationDate, RegistrationAccountId) values('CBC LOGISTICS','1',GETDATE(),1)
-insert into dbo.Brand (Description, State, RegistrationDate, RegistrationAccountId) values('NUTRI DIET','1',GETDATE(),1)
-insert into dbo.Brand (Description, State, RegistrationDate, RegistrationAccountId) values('APPLETON SPECIAL','1',GETDATE(),1)
-insert into dbo.Brand (Description, State, RegistrationDate, RegistrationAccountId) values('AMBEV','1',GETDATE(),1)
-insert into dbo.Brand (Description, State, RegistrationDate, RegistrationAccountId) values('SOBERANA','1',GETDATE(),1)
-insert into dbo.Brand (Description, State, RegistrationDate, RegistrationAccountId) values('HERBI','1',GETDATE(),1)
-insert into dbo.Brand (Description, State, RegistrationDate, RegistrationAccountId) values('ANGEL','1',GETDATE(),1)
-insert into dbo.Brand (Description, State, RegistrationDate, RegistrationAccountId) values('CONFIPERU','1',GETDATE(),1)
-insert into dbo.Brand (Description, State, RegistrationDate, RegistrationAccountId) values('PAPI RICAS','1',GETDATE(),1)
-insert into dbo.Brand (Description, State, RegistrationDate, RegistrationAccountId) values('SUPER','1',GETDATE(),1)
-insert into dbo.Brand (Description, State, RegistrationDate, RegistrationAccountId) values('AMBROSOLI','1',GETDATE(),1)
-insert into dbo.Brand (Description, State, RegistrationDate, RegistrationAccountId) values('TANA CHOCOLATERÍA','1',GETDATE(),1)
-insert into dbo.Brand (Description, State, RegistrationDate, RegistrationAccountId) values('ANDINA','1',GETDATE(),1)
-insert into dbo.Brand (Description, State, RegistrationDate, RegistrationAccountId) values('ALFAJORES DE NANY','1',GETDATE(),1)
-insert into dbo.Brand (Description, State, RegistrationDate, RegistrationAccountId) values('BUZZY','1',GETDATE(),1)
-insert into dbo.Brand (Description, State, RegistrationDate, RegistrationAccountId) values('ISIDRO','1',GETDATE(),1)
-insert into dbo.Brand (Description, State, RegistrationDate, RegistrationAccountId) values('APPLETON WHITE(BLANCO)','1',GETDATE(),1)
-insert into dbo.Brand (Description, State, RegistrationDate, RegistrationAccountId) values('PERFETTI VAN MELLE','1',GETDATE(),1)
-insert into dbo.Brand (Description, State, RegistrationDate, RegistrationAccountId) values('SAN JORGE','1',GETDATE(),1)
-insert into dbo.Brand (Description, State, RegistrationDate, RegistrationAccountId) values('J&D SNACK','1',GETDATE(),1)
-insert into dbo.Brand (Description, State, RegistrationDate, RegistrationAccountId) values('GUANDY','1',GETDATE(),1)
-insert into dbo.Brand (Description, State, RegistrationDate, RegistrationAccountId) values('DOCILE','1',GETDATE(),1)
-insert into dbo.Brand (Description, State, RegistrationDate, RegistrationAccountId) values('COCA COLA COMPANY','1',GETDATE(),1)
-insert into dbo.Brand (Description, State, RegistrationDate, RegistrationAccountId) values('INCA COLA','1',GETDATE(),1)
-insert into dbo.Brand (Description, State, RegistrationDate, RegistrationAccountId) values('REPREX','1',GETDATE(),1)
-insert into dbo.Brand (Description, State, RegistrationDate, RegistrationAccountId) values('BACKUS','1',GETDATE(),1)
-insert into dbo.Brand (Description, State, RegistrationDate, RegistrationAccountId) values('DI PERUGIA','1',GETDATE(),1)
-insert into dbo.Brand (Description, State, RegistrationDate, RegistrationAccountId) values('CYNKAT SAC','1',GETDATE(),1)
-insert into dbo.Brand (Description, State, RegistrationDate, RegistrationAccountId) values('VIDA','1',GETDATE(),1)
-insert into dbo.Brand (Description, State, RegistrationDate, RegistrationAccountId) values('FERRERO','1',GETDATE(),1)
-insert into dbo.Brand (Description, State, RegistrationDate, RegistrationAccountId) values('ARAS','1',GETDATE(),1)
-insert into dbo.Brand (Description, State, RegistrationDate, RegistrationAccountId) values('SIERRA VERDE','1',GETDATE(),1)
-insert into dbo.Brand (Description, State, RegistrationDate, RegistrationAccountId) values('MENTOS','1',GETDATE(),1)
-insert into dbo.Brand (Description, State, RegistrationDate, RegistrationAccountId) values('CONFITECA','1',GETDATE(),1)
-insert into dbo.Brand (Description, State, RegistrationDate, RegistrationAccountId) values('MJF INVERSIONES','1',GETDATE(),1)
-insert into dbo.Brand (Description, State, RegistrationDate, RegistrationAccountId) values('SM','1',GETDATE(),1)
-insert into dbo.Brand (Description, State, RegistrationDate, RegistrationAccountId) values('CRAFF','1',GETDATE(),1)
-insert into dbo.Brand (Description, State, RegistrationDate, RegistrationAccountId) values('LABOCER','1',GETDATE(),1)
-insert into dbo.Brand (Description, State, RegistrationDate, RegistrationAccountId) values('ADRIANO','1',GETDATE(),1)
-insert into dbo.Brand (Description, State, RegistrationDate, RegistrationAccountId) values('WINTERS','1',GETDATE(),1)
-insert into dbo.Brand (Description, State, RegistrationDate, RegistrationAccountId) values('WAYKI','1',GETDATE(),1)
-insert into dbo.Brand (Description, State, RegistrationDate, RegistrationAccountId) values('NESTLE','1',GETDATE(),1)
-insert into dbo.Brand (Description, State, RegistrationDate, RegistrationAccountId) values('BACARDI CARTA ORO','1',GETDATE(),1)
-insert into dbo.Brand (Description, State, RegistrationDate, RegistrationAccountId) values('BRITIS','1',GETDATE(),1)
-insert into dbo.Brand (Description, State, RegistrationDate, RegistrationAccountId) values('CORPORACION BONY S.A.C','1',GETDATE(),1)
-insert into dbo.Brand (Description, State, RegistrationDate, RegistrationAccountId) values('INVERSIONES DODDY EIRL','1',GETDATE(),1)
-insert into dbo.Brand (Description, State, RegistrationDate, RegistrationAccountId) values('ALDOR','1',GETDATE(),1)
-insert into dbo.Brand (Description, State, RegistrationDate, RegistrationAccountId) values('IMPORTADO','1',GETDATE(),1)
-insert into dbo.Brand (Description, State, RegistrationDate, RegistrationAccountId) values('KOKOLIZO','1',GETDATE(),1)
-insert into dbo.Brand (Description, State, RegistrationDate, RegistrationAccountId) values('HERSHEY*S','1',GETDATE(),1)
-insert into dbo.Brand (Description, State, RegistrationDate, RegistrationAccountId) values('DULCITO','1',GETDATE(),1)
-insert into dbo.Brand (Description, State, RegistrationDate, RegistrationAccountId) values('TACAMA','1',GETDATE(),1)
-insert into dbo.Brand (Description, State, RegistrationDate, RegistrationAccountId) values('TROME','1',GETDATE(),1)
-insert into dbo.Brand (Description, State, RegistrationDate, RegistrationAccountId) values('AMERICANDY','1',GETDATE(),1)
-insert into dbo.Brand (Description, State, RegistrationDate, RegistrationAccountId) values('FLOR DE CAÑA   AÑEJO ORO','1',GETDATE(),1)
-insert into dbo.Brand (Description, State, RegistrationDate, RegistrationAccountId) values('HAMPTONS','1',GETDATE(),1)
-insert into dbo.Brand (Description, State, RegistrationDate, RegistrationAccountId) values('PRINGLES','1',GETDATE(),1)
-insert into dbo.Brand (Description, State, RegistrationDate, RegistrationAccountId) values('ANL','1',GETDATE(),1)
-insert into dbo.Brand (Description, State, RegistrationDate, RegistrationAccountId) values('ARCOR','1',GETDATE(),1)
-insert into dbo.Brand (Description, State, RegistrationDate, RegistrationAccountId) values('FRITO LAYS','1',GETDATE(),1)
-insert into dbo.Brand (Description, State, RegistrationDate, RegistrationAccountId) values('DEL PARAISO LIGHT','1',GETDATE(),1)
-insert into dbo.Brand (Description, State, RegistrationDate, RegistrationAccountId) values('QUEIROLO','1',GETDATE(),1)
-insert into dbo.Brand (Description, State, RegistrationDate, RegistrationAccountId) values('DIA','1',GETDATE(),1)
-insert into dbo.Brand (Description, State, RegistrationDate, RegistrationAccountId) values('ADAMS - CADBURY','1',GETDATE(),1)
-insert into dbo.Brand (Description, State, RegistrationDate, RegistrationAccountId) values('LA IBERICA','1',GETDATE(),1)
-insert into dbo.Brand (Description, State, RegistrationDate, RegistrationAccountId) values('VIDA Y SALUD','1',GETDATE(),1)
-insert into dbo.Brand (Description, State, RegistrationDate, RegistrationAccountId) values('BARCELO','1',GETDATE(),1)
-insert into dbo.Brand (Description, State, RegistrationDate, RegistrationAccountId) values('SUPERIOR','1',GETDATE(),1)
-insert into dbo.Brand (Description, State, RegistrationDate, RegistrationAccountId) values('PEPSICO','1',GETDATE(),1)
-insert into dbo.Brand (Description, State, RegistrationDate, RegistrationAccountId) values('LAIVE','1',GETDATE(),1)
-insert into dbo.Brand (Description, State, RegistrationDate, RegistrationAccountId) values('DEYELLI','1',GETDATE(),1)
-insert into dbo.Brand (Description, State, RegistrationDate, RegistrationAccountId) values('MOLITALIA','1',GETDATE(),1)
-insert into dbo.Brand (Description, State, RegistrationDate, RegistrationAccountId) values('NATURAL HOUSE','1',GETDATE(),1)
-insert into dbo.Brand (Description, State, RegistrationDate, RegistrationAccountId) values('KARINTO','1',GETDATE(),1)
-insert into dbo.Brand (Description, State, RegistrationDate, RegistrationAccountId) values('PEPSI COLA','1',GETDATE(),1)
-insert into dbo.Brand (Description, State, RegistrationDate, RegistrationAccountId) values('NOCHE BUENA','1',GETDATE(),1)
-insert into dbo.Brand (Description, State, RegistrationDate, RegistrationAccountId) values('NORTE Y SUR LIGHT','1',GETDATE(),1)
-insert into dbo.Brand (Description, State, RegistrationDate, RegistrationAccountId) values('ACQUAFRESH','1',GETDATE(),1)
-insert into dbo.Brand (Description, State, RegistrationDate, RegistrationAccountId) values('SAYON','1',GETDATE(),1)
-insert into dbo.Brand (Description, State, RegistrationDate, RegistrationAccountId) values('CUATRO GALLOS','1',GETDATE(),1)
-insert into dbo.Brand (Description, State, RegistrationDate, RegistrationAccountId) values('NABISCO','1',GETDATE(),1)
-insert into dbo.Brand (Description, State, RegistrationDate, RegistrationAccountId) values('COLOMBINA','1',GETDATE(),1)
-insert into dbo.Brand (Description, State, RegistrationDate, RegistrationAccountId) values('PORTON','1',GETDATE(),1)
-insert into dbo.Brand (Description, State, RegistrationDate, RegistrationAccountId) values('CHAPLIN','1',GETDATE(),1)
-insert into dbo.Brand (Description, State, RegistrationDate, RegistrationAccountId) values('AJE','1',GETDATE(),1)
-insert into dbo.Brand (Description, State, RegistrationDate, RegistrationAccountId) values('PERUFARMA','1',GETDATE(),1)
-insert into dbo.Brand (Description, State, RegistrationDate, RegistrationAccountId) values('COSTA','1',GETDATE(),1)
-insert into dbo.Brand (Description, State, RegistrationDate, RegistrationAccountId) values('COMERCIALIZADORA SALEM','1',GETDATE(),1)
-insert into dbo.Brand (Description, State, RegistrationDate, RegistrationAccountId) values('GLORIA','1',GETDATE(),1)
-insert into dbo.Brand (Description, State, RegistrationDate, RegistrationAccountId) values('DOS CERRITOS','1',GETDATE(),1)
-insert into dbo.Brand (Description, State, RegistrationDate, RegistrationAccountId) values('DONOFRIO','1',GETDATE(),1)
-insert into dbo.Brand (Description, State, RegistrationDate, RegistrationAccountId) values('GURE','1',GETDATE(),1)
-insert into dbo.Brand (Description, State, RegistrationDate, RegistrationAccountId) values('GUSTOZZI','1',GETDATE(),1)
-insert into dbo.Brand (Description, State, RegistrationDate, RegistrationAccountId) values('IMPORTADOS','1',GETDATE(),1)
-insert into dbo.Brand (Description, State, RegistrationDate, RegistrationAccountId) values('VICTORIA','1',GETDATE(),1)
-insert into dbo.Brand (Description, State, RegistrationDate, RegistrationAccountId) values('RED BULL','1',GETDATE(),1)
-insert into dbo.Brand (Description, State, RegistrationDate, RegistrationAccountId) values('LEXUS','1',GETDATE(),1)
-insert into dbo.Brand (Description, State, RegistrationDate, RegistrationAccountId) values('MI MALLITA','1',GETDATE(),1)
-insert into dbo.Brand (Description, State, RegistrationDate, RegistrationAccountId) values('INVERSIONES CAMPOS','1',GETDATE(),1)
-insert into dbo.Brand (Description, State, RegistrationDate, RegistrationAccountId) values('TABERNERO','1',GETDATE(),1)
-insert into dbo.Brand (Description, State, RegistrationDate, RegistrationAccountId) values('DOS CABALLOS','1',GETDATE(),1)
-
 --DROP TABLE Measure
 CREATE TABLE dbo.Measure (
     MeasureId int identity(1,1) primary key not null,
@@ -563,15 +343,8 @@ CREATE TABLE dbo.Measure (
     CONSTRAINT FK__Measure__RegistrationUserId__6B79F03D FOREIGN KEY (RegistrationAccountId) REFERENCES dbo.Account (AccountId),
     CONSTRAINT FK__Measure__ModifiedUserId__6B79F03D FOREIGN KEY (ModifiedAccountId) REFERENCES dbo.Account (AccountId)
 )
-
-select * from dbo.Measure
-
-insert into dbo.Measure (Description, ShortDescription, Hierarchy, State, RegistrationDate, RegistrationAccountId) values('Unidades', 'Uds', 1, '1', GETDATE(), 1);
-insert into dbo.Measure (Description, ShortDescription, Hierarchy, State, RegistrationDate, RegistrationAccountId) values('Unidad', 'Und', 2, '1', GETDATE(), 1);
-insert into dbo.Measure (Description, ShortDescription, Hierarchy, State, RegistrationDate, RegistrationAccountId) values('Caja', 'Cja', 4, '1', GETDATE(), 1);
-insert into dbo.Measure (Description, ShortDescription, Hierarchy, State, RegistrationDate, RegistrationAccountId) values('Bolsa', 'Bls', 3, '1', GETDATE(), 1);
-insert into dbo.Measure (Description, ShortDescription, Hierarchy, State, RegistrationDate, RegistrationAccountId) values('Paquete', 'Und', 5, '1', GETDATE(), 1);
 GO
+
 CREATE OR ALTER PROC dbo.MeasureInsert(
     @Description varchar(100),
     @ShortDescription varchar(10),
@@ -767,114 +540,139 @@ AS
     DECLARE @l_exists_presentation int = 0;
     DECLARE @Id int, @EquivalentQuantity int, @Price decimal(16,6), @Barcode varchar(15), @MeasureFromId int, @MeasureToId int
 BEGIN
-    IF @ProductId = 0 
-        BEGIN
-            INSERT INTO dbo.Product 
-                                ([Description], 
-                                Code, 
-                                CategoryId, 
-                                SubCategoryId, 
-                                BrandId, 
-                                State, 
-                                RegistrationDate, 
-                                RegistrationAccountId)
-                   VALUES       
-                                (@Description, 
-                                @Code,
-                                @CategoryId,
-                                @SubCategoryId,
-                                @BrandId,
-                                @State,
-                                GETDATE(),
-                                @AccountId)
-            SET @L_ProductId = (SELECT SCOPE_IDENTITY())
-
-            DECLARE Cursor1 CURSOR FOR 
-            SELECT Id, EquivalentQuantity, Price, BarCode, MeasureFromId, MeasureToId FROM @ProductPresentationList
-
-            OPEN Cursor1 
-                FETCH Cursor1 INTO @Id, @EquivalentQuantity, @Price, @Barcode, @MeasureFromId, @MeasureToId
-
-            WHILE @@FETCH_STATUS = 0
+    BEGIN TRY
+        BEGIN TRAN
+            PRINT 'STORAGEID' + cast(@ProductId as varchar(10))
+            IF @ProductId = 0 
                 BEGIN
-                    INSERT INTO dbo.ProductPresentation 
-                                (EquivalentQuantity,
-                                Price,
-                                BarCode,
-                                MeasureFromId,
-                                MeasureToId,
-                                ProductId)
-                    VALUES      
-                                (@EquivalentQuantity,
-                                @Price,
-                                @BarCode,
-                                @MeasureFromId,
-                                @MeasureToId,
-                                @L_ProductId)
-                    FETCH Cursor1 INTO @Id, @EquivalentQuantity, @Price, @Barcode, @MeasureFromId, @MeasureToId
+                    INSERT INTO dbo.Product 
+                                        ([Description], 
+                                        Code, 
+                                        CategoryId, 
+                                        SubCategoryId, 
+                                        BrandId, 
+                                        State, 
+                                        RegistrationDate, 
+                                        RegistrationAccountId)
+                        VALUES       
+                                        (@Description, 
+                                        @Code,
+                                        @CategoryId,
+                                        @SubCategoryId,
+                                        @BrandId,
+                                        @State,
+                                        GETDATE(),
+                                        @AccountId)
+                    SET @L_ProductId = (SELECT SCOPE_IDENTITY())
+
+                    DECLARE Cursor1 CURSOR LOCAL FOR 
+                    SELECT Id, EquivalentQuantity, Price, BarCode, MeasureFromId, MeasureToId FROM @ProductPresentationList
+
+                    OPEN Cursor1 
+                        FETCH Cursor1 INTO @Id, @EquivalentQuantity, @Price, @Barcode, @MeasureFromId, @MeasureToId
+
+                    WHILE @@FETCH_STATUS = 0
+                        BEGIN
+                            INSERT INTO dbo.ProductPresentation 
+                                        (EquivalentQuantity,
+                                        Price,
+                                        BarCode,
+                                        MeasureFromId,
+                                        MeasureToId,
+                                        ProductId)
+                            VALUES      
+                                        (@EquivalentQuantity,
+                                        @Price,
+                                        @BarCode,
+                                        @MeasureFromId,
+                                        @MeasureToId,
+                                        @L_ProductId)
+                            FETCH Cursor1 INTO @Id, @EquivalentQuantity, @Price, @Barcode, @MeasureFromId, @MeasureToId
+                        END
+                    CLOSE Cursor1
+                    DEALLOCATE Cursor1          
                 END
-            CLOSE Cursor1
-            DEALLOCATE Cursor1          
-        END
-    ELSE 
-        BEGIN
-            PRINT 'UPDATE'
-            UPDATE dbo.Product
-                SET [Description]       = @Description,
-                    Code                = @Code,
-                    CategoryId          = @CategoryId,
-                    SubCategoryId       = @SubCategoryId,
-                    BrandId             = @BrandId,
-                    [State]             = @State,
-                    ModifiedDate        = GETDATE(),
-                    ModifiedAccountId   = @AccountId
-            WHERE ProductId             = @ProductId
+            ELSE 
+                BEGIN
+                    PRINT 'UPDATE'
+                    UPDATE dbo.Product
+                        SET [Description]       = @Description,
+                            Code                = @Code,
+                            CategoryId          = @CategoryId,
+                            SubCategoryId       = @SubCategoryId,
+                            BrandId             = @BrandId,
+                            [State]             = @State,
+                            ModifiedDate        = GETDATE(),
+                            ModifiedAccountId   = @AccountId
+                    WHERE ProductId             = @ProductId
 
-            DECLARE Cursor1 CURSOR FOR 
-                SELECT Id, EquivalentQuantity, Price, BarCode, MeasureFromId, MeasureToId FROM @ProductPresentationList
+                    DECLARE Cursor1 CURSOR FOR 
+                        SELECT Id, EquivalentQuantity, Price, BarCode, MeasureFromId, MeasureToId FROM @ProductPresentationList
 
-                OPEN Cursor1 
-                    FETCH Cursor1 INTO @Id, @EquivalentQuantity, @Price, @Barcode, @MeasureFromId, @MeasureToId
+                        OPEN Cursor1 
+                            FETCH Cursor1 INTO @Id, @EquivalentQuantity, @Price, @Barcode, @MeasureFromId, @MeasureToId
 
-                WHILE @@FETCH_STATUS = 0
-                    BEGIN
-                       SET @l_exists_presentation = (
-                            SELECT COUNT(*) FROM dbo.ProductPresentation WHERE ProductId = @ProductId AND ProductPresentationId = @id
-                        )
-                        print @l_exists_presentation
-                        IF @l_exists_presentation > 0 
+                        WHILE @@FETCH_STATUS = 0
                             BEGIN
-                                UPDATE dbo.ProductPresentation
-                                    SET EquivalentQuantity      = @EquivalentQuantity,
-                                        Price                   = @Price,
-                                        BarCode                 = @Barcode,
-                                        MeasureFromId           = @MeasureFromId,
-                                        MeasureToId             = @MeasureToId
-                                WHERE ProductId             = @ProductId
-                                AND ProductPresentationId   = @Id
-                            END
-                        ELSE 
-                            BEGIN
-                                INSERT INTO dbo.ProductPresentation 
-                                            (EquivalentQuantity,
-                                            Price,
-                                            BarCode,
-                                            MeasureFromId,
-                                            MeasureToId,
-                                            ProductId)
-                                VALUES      
-                                            (@EquivalentQuantity,
-                                            @Price,
-                                            @BarCode,
-                                            @MeasureFromId,
-                                            @MeasureToId,
-                                            @ProductId)
-                            END
-                    FETCH Cursor1 INTO @Id, @EquivalentQuantity, @Price, @Barcode, @MeasureFromId, @MeasureToId
+                            SET @l_exists_presentation = (
+                                    SELECT COUNT(*) FROM dbo.ProductPresentation WHERE ProductId = @ProductId AND ProductPresentationId = @id
+                                )
+                                print @l_exists_presentation
+                                IF @l_exists_presentation > 0 
+                                    BEGIN
+                                        UPDATE dbo.ProductPresentation
+                                            SET EquivalentQuantity      = @EquivalentQuantity,
+                                                Price                   = @Price,
+                                                BarCode                 = @Barcode,
+                                                MeasureFromId           = @MeasureFromId,
+                                                MeasureToId             = @MeasureToId
+                                        WHERE ProductId             = @ProductId
+                                        AND ProductPresentationId   = @Id
+                                    END
+                                ELSE 
+                                    BEGIN
+                                        INSERT INTO dbo.ProductPresentation 
+                                                    (EquivalentQuantity,
+                                                    Price,
+                                                    BarCode,
+                                                    MeasureFromId,
+                                                    MeasureToId,
+                                                    ProductId)
+                                        VALUES      
+                                                    (@EquivalentQuantity,
+                                                    @Price,
+                                                    @BarCode,
+                                                    @MeasureFromId,
+                                                    @MeasureToId,
+                                                    @ProductId)
+                                          COMMIT TRAN
+                                    END
+                            FETCH Cursor1 INTO @Id, @EquivalentQuantity, @Price, @Barcode, @MeasureFromId, @MeasureToId
+                        END
+                        CLOSE Cursor1
+                        DEALLOCATE Cursor1          
                 END
-                CLOSE Cursor1
-                DEALLOCATE Cursor1          
-        END
+        COMMIT TRAN
+    END TRY
+    BEGIN CATCH
+        DECLARE @ErrorNumber int
+        DECLARE @ErrorSeverity varchar(1000), @ErrorState varchar(1000), @ErrorProcedure varchar(1000),
+                @ErrorLine int, @ErrorMessage varchar(1000), @RegistrationDate datetime
+        SELECT 
+            @ErrorNumber = ERROR_NUMBER(),
+            @ErrorSeverity = ERROR_SEVERITY(),
+            @ErrorState = ERROR_STATE(),
+            @ErrorProcedure = ERROR_PROCEDURE(),
+            @ErrorLine = ERROR_LINE(),
+            @ErrorMessage = ERROR_MESSAGE(),
+            @RegistrationDate = GETDATE();
+        
+        ROLLBACK TRAN;
+        EXEC dbo.ErrorLogInsert @ErrorNumber, @ErrorSeverity, @ErrorState, @ErrorProcedure, @ErrorLine, @ErrorMessage
+        RAISERROR (@ErrorMessage,
+                   @ErrorSeverity,
+                   @ErrorState);
+    END CATCH
 END
 GO
 
@@ -1124,24 +922,6 @@ BEGIN
     ORDER BY a.SalesOrderId OFFSET @First ROWS FETCH NEXT @Rows ROWS ONLY--00:00:00.176;
 
 END
-
-select * from SalesOrder
-select * from SalesOrderDetail
-
-sELECT * FROM SubCategory ORDER BY SubCategoryId OFFSET 10 ROWS FETCH NEXT 10 ROWS ONLY;--00:00:00.725
-sELECT * FROM SubCategory--00:00:00.281
-
-select * from product
-
-update product set state = '0' where ProductId = 5
-
-  SELECT RIGHT('NPV-000'+CAST(155 AS VARCHAR(10)),10)
-
-  delete from dbo.salesorder
-  delete from dbo.salesorderdetail
-
-  select * from dbo.Measure
-  select * from dbo.Product
 GO
 
 CREATE OR ALTER PROC dbo.CategoryGetAll
@@ -1157,8 +937,6 @@ BEGIN
     --WHERE State = 1
 END
 GO 
-
-select * from Product
 
 CREATE OR ALTER PROC dbo.MeasureGetAll
 AS
@@ -1204,19 +982,8 @@ BEGIN
     INNER JOIN dbo.Category b ON b.CategoryId = a.CategoryId
     --AND State = 1
 END
-GO 
-
-select * from dbo.Category
-select * from dbo.SubCategory
-    select * from dbo.Account
-select * from dbo.Product
-
-update dbo.SubCategory
-set CategoryId = 2
-where SubCategoryId = 1
-
-select * from Brand
 GO
+
 CREATE OR ALTER PROC dbo.BrandGetAll
 AS
 BEGIN
@@ -1299,21 +1066,6 @@ CREATE TABLE dbo.StorageProduct (
     CONSTRAINT FK__StorageProduct__ModifiedAccountId__6B79F03D FOREIGN KEY (ModifiedAccountId) REFERENCES dbo.Account (AccountId),
     CONSTRAINT PK__StorageProduct_PK PRIMARY KEY (StorageId, ProductId, ProductPresentationId)
 )   
-
-DELETE FROM DBO.StorageProduct
-INSERT INTO dbo.StorageProduct
-SELECT 
-        ABS(CHECKSUM(NEWID()) % 10), 1, a.ProductId, b.ProductPresentationId, 1, NULL, GETDATE(), NULL     
-    FROM dbo.Product a 
-    INNER JOIN dbo.ProductPresentation b on b.ProductId = a.ProductId
-
-select 0, 1, a.ProductId, b.ProductPresentationId, 1, NULL, GETDATE(), NULL
-FROM dbo.Product a 
-    INNER JOIN dbo.ProductPresentation b on b.ProductId = a.ProductId
-
-
-    select * from dbo.ProductPresentation
-    select * from dbo.StorageProduct
 GO
 
 CREATE OR ALTER PROC dbo.StorageProductGetByStorageId
@@ -1349,22 +1101,100 @@ BEGIN
     AND (LOWER(b.[Description])     LIKE '%' + LOWER(@Description) + '%'      
                                     OR @Description     IS NULL)
 END
+GO
 
-exec StorageProductGetByStorageId 1
+CREATE OR ALTER TRIGGER dbo.TR_ProductPresentation_AfterInsert
+ON dbo.ProductPresentation
+AFTER INSERT 
+AS
+BEGIN
+    /*BEGIN TRY*/
+             PRINT 'INICIA RITGGER'
+            DECLARE
+                @ProductId int,
+                @ProductPresentationId int,
+                @RegistrationAccountId int,
+                @StorageId int
 
-select * from dbo.product
+            SELECT 
+                    @ProductId = ProductId,
+                    @ProductPresentationId = ProductPresentationId,
+                    @RegistrationAccountId = 1
+                FROM inserted a
+            PRINT 'STORAGEID' + cast(@ProductId as varchar(10))
+            PRINT '@ProductPresentationId' + cast(@ProductPresentationId as varchar(10))
+            PRINT '@RegistrationAccountId' + cast(@RegistrationAccountId as varchar(10))
+            DECLARE Cursor1 CURSOR LOCAL FOR 
+            SELECT StorageId FROM dbo.Storage
+            
+            OPEN Cursor1
+                FETCH Cursor1 INTO @StorageId
+            
+            WHILE @@FETCH_STATUS = 0
+                BEGIN
+                    INSERT INTO dbo.StorageProduct
+                            (StorageId, 
+                             ProductId, 
+                             ProductPresentationId, 
+                             RegistrationAccountId, 
+                             RegistrationDate)
+                    VALUES 
+                            (@StorageId,
+                             @ProductId, 
+                             @ProductPresentationId, 
+                             @RegistrationAccountId, 
+                             GETDATE())
 
+                    FETCH Cursor1 INTO @StorageId
+                END
+            CLOSE Cursor1
+            DEALLOCATE Cursor1
+            
+        
+    /*END TRY
+    BEGIN CATCH
+        DECLARE @ErrorNumber int
+        DECLARE @ErrorSeverity varchar(1000), @ErrorState varchar(1000), @ErrorProcedure varchar(1000),
+                @ErrorLine int, @ErrorMessage varchar(1000)
+        SELECT 
+            @ErrorNumber = ERROR_NUMBER(),
+            @ErrorSeverity = ERROR_SEVERITY(),
+            @ErrorState = ERROR_STATE(),
+            @ErrorProcedure = ERROR_PROCEDURE(),
+            @ErrorLine = ERROR_LINE(),
+            @ErrorMessage = ERROR_MESSAGE();
 
-SELECT 
-*
-        FROM dbo.StorageProduct a
-    INNER JOIN dbo.Product b on b.ProductId = a.ProductId
-    INNER JOIN dbo.ProductPresentation c on c.ProductId = b.ProductId AND c.ProductPresentationId = a.ProductPresentationId
-    INNER JOIN dbo.Measure d on d.MeasureId = c.MeasureFromId
-    INNER JOIN dbo.Category e on e.CategoryId = b.CategoryId
-    INNER JOIN dbo.SubCategory f on f.CategoryId = e.CategoryId AND f.SubCategoryId = b.SubCategoryId
+        ROLLBACK TRAN;
+        INSERT INTO dbo.ErrorLog
+        VALUES (@ErrorNumber, @ErrorSeverity, @ErrorState, @ErrorProcedure, @ErrorLine, @ErrorMessage)
+    END CATCH**/
+END
+GO
 
-    SELECT * FROM StorageProduct
-    SELECT * FROM DBO.PRODUCT
-    SELECT * FROM Category
-    select * from SubCategory
+--DROP TABLE dbo.ErrorLog
+CREATE TABLE dbo.ErrorLog
+(
+    ErrorNumber int,
+    ErrorSeverity varchar(1000),
+    ErrorState varchar(1000),
+    ErrorProcedure varchar(1000),
+    ErrorLine int,
+    ErrorMessagee varchar(1000),
+    RegistrationDate datetime
+)
+GO
+CREATE OR ALTER PROC dbo.ErrorLogInsert
+(
+    @ErrorNumber int,
+    @ErrorSeverity varchar(1000),
+    @ErrorState varchar(1000),
+    @ErrorProcedure varchar(1000),
+    @ErrorLine int,
+    @ErrorMessage varchar(1000)
+)
+AS
+BEGIN
+    INSERT INTO dbo.ErrorLog
+    VALUES (@ErrorNumber, @ErrorSeverity, @ErrorState, @ErrorProcedure, @ErrorLine, @ErrorMessage, GETDATE())
+END
+GO
