@@ -1,3 +1,23 @@
+/*
+declare 
+	@productId int = 5,
+	@Description varchar(200) = 'Product1',
+	@Code varchar(100) = '132',
+	@CategoryId int = 1,
+	@SubCategoryId int = 1,
+	@BrandId int = 1,
+	@State char(1) = '1',
+	@AccountId int = 1,
+	@ProductPresentationList AS dbo.ProductPresentationList
+begin
+	insert @ProductPresentationList (Id,EquivalentQuantity, Price, BarCode, MeasureFromId, MeasureToId)
+	values (10, 5, 13.50, '100032423', 1, 1)
+    insert @ProductPresentationList (Id,EquivalentQuantity, Price, BarCode, MeasureFromId, MeasureToId)
+	values (0, 4, 15, '104477ds1', 3, 2)
+	exec dbo.ProductInsertUpdate @productId, @Description, @Code, @CategoryId, @SubCategoryId, @BrandId,
+			@State, @AccountId, @ProductPresentationList
+end
+GO**/
 
 INSERT INTO Account VALUES('MARC', '$2a$11$sBDrsl2ZQxbrupLdCzc2qeH1ddR68XX2bltVq86nptLzaCLcuVsvG', 'MIGUEL ANGEL', 'ROJAS CORAJE', '93334444', 'CORREO', '44413254', '1', 1, GETDATE(), NULL, NULL, NULL)
 
@@ -226,3 +246,7 @@ insert into dbo.Measure (Description, ShortDescription, Hierarchy, State, Regist
 insert into dbo.Measure (Description, ShortDescription, Hierarchy, State, RegistrationDate, RegistrationAccountId) values('Caja', 'Cja', 4, '1', GETDATE(), 1);
 insert into dbo.Measure (Description, ShortDescription, Hierarchy, State, RegistrationDate, RegistrationAccountId) values('Bolsa', 'Bls', 3, '1', GETDATE(), 1);
 insert into dbo.Measure (Description, ShortDescription, Hierarchy, State, RegistrationDate, RegistrationAccountId) values('Paquete', 'Und', 5, '1', GETDATE(), 1);
+insert into dbo.Measure (Description, ShortDescription, Hierarchy, State, RegistrationDate, RegistrationAccountId) values('Gramos', 'Grm', 6, '1', GETDATE(), 1);
+insert into dbo.Measure (Description, ShortDescription, Hierarchy, State, RegistrationDate, RegistrationAccountId) values('Kilogramos', 'Kg', 7, '1', GETDATE(), 1);
+insert into dbo.Measure (Description, ShortDescription, Hierarchy, State, RegistrationDate, RegistrationAccountId) values('Saco', 'Sc', 8, '1', GETDATE(), 1);
+

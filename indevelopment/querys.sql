@@ -12,3 +12,7 @@ FROM dbo.Product a
 
     select * from dbo.ProductPresentation
     select * from dbo.StorageProduct
+
+select * from dbo.ProductPresentation
+where ProductId = 1
+and MeasureFromId NOT IN(8)

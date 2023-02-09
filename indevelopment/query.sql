@@ -410,6 +410,7 @@ CREATE TABLE dbo.ProductPresentation
     EquivalentQuantity int,
     Price decimal(16,6),
     BarCode varchar(15),
+    Hierarchy int,
     MeasureFromId int,
     MeasureToId int,
     ProductId int,
@@ -424,32 +425,13 @@ CREATE TYPE ProductPresentationList as Table (
     EquivalentQuantity int,
     Price decimal(16,6),
     BarCode varchar(15),
+    Hierarchy int,
     MeasureFromId int,
     MeasureToId int
 )
 GO
 
-declare 
-	@productId int = 5,
-	@Description varchar(200) = 'Product1',
-	@Code varchar(100) = '132',
-	@CategoryId int = 1,
-	@SubCategoryId int = 1,
-	@BrandId int = 1,
-	@State char(1) = '1',
-	@AccountId int = 1,
-	@ProductPresentationList AS dbo.ProductPresentationList
-begin
-	insert @ProductPresentationList (Id,EquivalentQuantity, Price, BarCode, MeasureFromId, MeasureToId)
-	values (10, 5, 13.50, '100032423', 1, 1)
-    insert @ProductPresentationList (Id,EquivalentQuantity, Price, BarCode, MeasureFromId, MeasureToId)
-	values (0, 4, 15, '104477ds1', 3, 2)
-	exec dbo.ProductInsertUpdate @productId, @Description, @Code, @CategoryId, @SubCategoryId, @BrandId,
-			@State, @AccountId, @ProductPresentationList
-end
-GO
-
-CREATE OR ALTER PROC dbo.ProductUpdate
+/*CREATE OR ALTER PROC dbo.ProductUpdate
 (
     @ProductId int,
     @Description varchar(200),
@@ -463,7 +445,8 @@ CREATE OR ALTER PROC dbo.ProductUpdate
 )
 AS
     DECLARE @l_exists_presentation int = 0;
-    DECLARE @Id int, @EquivalentQuantity int, @Price decimal(16,6), @Barcode varchar(15), @MeasureFromId int, @MeasureToId int
+    DECLARE @Id int, @EquivalentQuantity int, @Price decimal(16,6), @Barcode varchar(15),
+            @L_Hierarchy int, @MeasureFromId int, @MeasureToId int
 BEGIN
     UPDATE dbo.Product
         SET [Description]       = @Description,
@@ -477,10 +460,10 @@ BEGIN
     WHERE ProductId             = @ProductId
 
     DECLARE Cursor1 CURSOR FOR 
-        SELECT Id, EquivalentQuantity, Price, BarCode, MeasureFromId, MeasureToId FROM @ProductPresentationList
+        SELECT Id, EquivalentQuantity, Price, BarCode, Hierarchy, MeasureFromId, MeasureToId FROM @ProductPresentationList
 
         OPEN Cursor1 
-            FETCH Cursor1 INTO @Id, @EquivalentQuantity, @Price, @Barcode, @MeasureFromId, @MeasureToId
+            FETCH Cursor1 INTO @Id, @EquivalentQuantity, @Price, @Barcode, @L_Hierarchy,@MeasureFromId, @MeasureToId
 
         WHILE @@FETCH_STATUS = 0
             BEGIN
@@ -494,6 +477,7 @@ BEGIN
                             SET EquivalentQuantity      = @EquivalentQuantity,
                                 Price                   = @Price,
                                 BarCode                 = @Barcode,
+                                Hierarchy               = @L_Hierarchy,
                                 MeasureFromId           = @MeasureFromId,
                                 MeasureToId             = @MeasureToId
                         WHERE ProductId             = @ProductId
@@ -505,6 +489,7 @@ BEGIN
                                     (EquivalentQuantity,
                                     Price,
                                     BarCode,
+                                    Hierarchy,
                                     MeasureFromId,
                                     MeasureToId,
                                     ProductId)
@@ -512,16 +497,17 @@ BEGIN
                                     (@EquivalentQuantity,
                                     @Price,
                                     @BarCode,
+                                    @L_Hierarchy,
                                     @MeasureFromId,
                                     @MeasureToId,
                                     @ProductId)
                     END
-            FETCH Cursor1 INTO @Id, @EquivalentQuantity, @Price, @Barcode, @MeasureFromId, @MeasureToId
+            FETCH Cursor1 INTO @Id, @EquivalentQuantity, @Price, @Barcode, @L_Hierarchy, @MeasureFromId, @MeasureToId
         END
         CLOSE Cursor1
         DEALLOCATE Cursor1   
 END
-GO
+GO**/
 
 CREATE OR ALTER PROC dbo.ProductInsertUpdate
 (
@@ -538,7 +524,8 @@ CREATE OR ALTER PROC dbo.ProductInsertUpdate
 AS 
     DECLARE @L_ProductId int = 0;
     DECLARE @l_exists_presentation int = 0;
-    DECLARE @Id int, @EquivalentQuantity int, @Price decimal(16,6), @Barcode varchar(15), @MeasureFromId int, @MeasureToId int
+    DECLARE @Id int, @EquivalentQuantity int, @Price decimal(16,6), @Barcode varchar(15),
+            @L_Hierarchy int, @MeasureFromId int, @MeasureToId int
 BEGIN
     BEGIN TRY
         BEGIN TRAN
@@ -566,10 +553,10 @@ BEGIN
                     SET @L_ProductId = (SELECT SCOPE_IDENTITY())
 
                     DECLARE Cursor1 CURSOR LOCAL FOR 
-                    SELECT Id, EquivalentQuantity, Price, BarCode, MeasureFromId, MeasureToId FROM @ProductPresentationList
+                    SELECT Id, EquivalentQuantity, Price, BarCode, Hierarchy, MeasureFromId, MeasureToId FROM @ProductPresentationList
 
                     OPEN Cursor1 
-                        FETCH Cursor1 INTO @Id, @EquivalentQuantity, @Price, @Barcode, @MeasureFromId, @MeasureToId
+                        FETCH Cursor1 INTO @Id, @EquivalentQuantity, @Price, @Barcode, @L_Hierarchy, @MeasureFromId, @MeasureToId
 
                     WHILE @@FETCH_STATUS = 0
                         BEGIN
@@ -577,6 +564,7 @@ BEGIN
                                         (EquivalentQuantity,
                                         Price,
                                         BarCode,
+                                        Hierarchy,
                                         MeasureFromId,
                                         MeasureToId,
                                         ProductId)
@@ -584,10 +572,11 @@ BEGIN
                                         (@EquivalentQuantity,
                                         @Price,
                                         @BarCode,
+                                        @L_Hierarchy,
                                         @MeasureFromId,
                                         @MeasureToId,
                                         @L_ProductId)
-                            FETCH Cursor1 INTO @Id, @EquivalentQuantity, @Price, @Barcode, @MeasureFromId, @MeasureToId
+                            FETCH Cursor1 INTO @Id, @EquivalentQuantity, @Price, @Barcode, @L_Hierarchy, @MeasureFromId, @MeasureToId
                         END
                     CLOSE Cursor1
                     DEALLOCATE Cursor1          
@@ -606,11 +595,11 @@ BEGIN
                             ModifiedAccountId   = @AccountId
                     WHERE ProductId             = @ProductId
 
-                    DECLARE Cursor1 CURSOR FOR 
-                        SELECT Id, EquivalentQuantity, Price, BarCode, MeasureFromId, MeasureToId FROM @ProductPresentationList
+                    DECLARE Cursor1 CURSOR LOCAL FOR 
+                        SELECT Id, EquivalentQuantity, Price, BarCode, Hierarchy, MeasureFromId, MeasureToId FROM @ProductPresentationList
 
                         OPEN Cursor1 
-                            FETCH Cursor1 INTO @Id, @EquivalentQuantity, @Price, @Barcode, @MeasureFromId, @MeasureToId
+                            FETCH Cursor1 INTO @Id, @EquivalentQuantity, @Price, @Barcode, @L_Hierarchy, @MeasureFromId, @MeasureToId
 
                         WHILE @@FETCH_STATUS = 0
                             BEGIN
@@ -624,6 +613,7 @@ BEGIN
                                             SET EquivalentQuantity      = @EquivalentQuantity,
                                                 Price                   = @Price,
                                                 BarCode                 = @Barcode,
+                                                Hierarchy               = @L_Hierarchy,
                                                 MeasureFromId           = @MeasureFromId,
                                                 MeasureToId             = @MeasureToId
                                         WHERE ProductId             = @ProductId
@@ -635,6 +625,7 @@ BEGIN
                                                     (EquivalentQuantity,
                                                     Price,
                                                     BarCode,
+                                                    Hierarchy,
                                                     MeasureFromId,
                                                     MeasureToId,
                                                     ProductId)
@@ -642,12 +633,12 @@ BEGIN
                                                     (@EquivalentQuantity,
                                                     @Price,
                                                     @BarCode,
+                                                    @L_Hierarchy,
                                                     @MeasureFromId,
                                                     @MeasureToId,
                                                     @ProductId)
-                                          COMMIT TRAN
                                     END
-                            FETCH Cursor1 INTO @Id, @EquivalentQuantity, @Price, @Barcode, @MeasureFromId, @MeasureToId
+                            FETCH Cursor1 INTO @Id, @EquivalentQuantity, @Price, @Barcode, @L_Hierarchy, @MeasureFromId, @MeasureToId
                         END
                         CLOSE Cursor1
                         DEALLOCATE Cursor1          
@@ -714,6 +705,7 @@ BEGIN
             a.ProductId,
             a.Price,
             a.BarCode,
+            a.Hierarchy,
             EquivalentFrom = concat(1, ' ',c.[Description]),
             EquivalentTo = concat(a.EquivalentQuantity, ' ', d.[Description])
         FROM dbo.ProductPresentation a 
@@ -751,6 +743,7 @@ BEGIN
             a.ProductId,
             a.Price,
             a.BarCode,
+            a.Hierarchy,
             a.EquivalentQuantity,
             a.MeasureFromId,
             a.MeasureToId,
@@ -771,7 +764,10 @@ CREATE OR ALTER PROC dbo.ProductPresentationGetByProductId
 AS 
 BEGIN
     SELECT 
-            EquivalentFrom = b.[Description] , a.Price, a.MeasureFromId
+            EquivalentFrom = b.[Description],
+            a.Price, 
+            a.Hierarchy,
+            a.MeasureFromId
         FROM dbo.ProductPresentation a
     INNER JOIN dbo.Measure b ON b.MeasureId = a.MeasureFromId
     WHERE productId = @productId
@@ -806,16 +802,6 @@ CREATE TABLE dbo.SalesOrderDetail (
     CONSTRAINT FK__SalesOrderDetail__SalesOrderId__6B79F03D FOREIGN KEY (SalesOrderId) REFERENCES dbo.SalesOrder (SalesOrderId),
     CONSTRAINT FK__SalesOrderDetail__ProductPresentationId__6B79F03D FOREIGN KEY (ProductPresentationId) REFERENCES dbo.ProductPresentation (ProductPresentationId),
     CONSTRAINT PK__SalesOrdeDetail_PK PRIMARY KEY (ProductId, SalesOrderId, ProductPresentationId)
-)
-GO
-
-select * from SalesOrder
-select * from SalesOrderDetail
-
-CREATE TYPE dbo.SalesOrderDetailType AS TABLE (
-    Amount int,
-    ProductId int not null,
-    SalesOrderId int not null
 )
 GO
 
@@ -1133,13 +1119,17 @@ BEGIN
             WHILE @@FETCH_STATUS = 0
                 BEGIN
                     INSERT INTO dbo.StorageProduct
-                            (StorageId, 
+                            (
+                             Quantity,
+                             StorageId, 
                              ProductId, 
                              ProductPresentationId, 
                              RegistrationAccountId, 
                              RegistrationDate)
                     VALUES 
-                            (@StorageId,
+                            (
+                             0,
+                             @StorageId,
                              @ProductId, 
                              @ProductPresentationId, 
                              @RegistrationAccountId, 
@@ -1198,3 +1188,192 @@ BEGIN
     VALUES (@ErrorNumber, @ErrorSeverity, @ErrorState, @ErrorProcedure, @ErrorLine, @ErrorMessage, GETDATE())
 END
 GO
+
+--DROP TABLE dbo.EntryNote
+CREATE TABLE dbo.EntryNote
+(
+    EntryNoteId int IDENTITY(1,1) primary key not null,
+    Correlative varchar(20),
+    State char(1),--1:Activo, 2: Inactivo
+    CostPriceTotal decimal(16,6),
+    RegistrationAccountId int NULL,
+    ModifiedAccountId int NULL,
+    RegistrationDate datetime NULL,
+    ModifiedDate datetime NULL,
+    CONSTRAINT FK__EntryNote__RegistrationAccountId__6B79F03D FOREIGN KEY (RegistrationAccountId) REFERENCES dbo.Account (AccountId),
+    CONSTRAINT FK__EntryNote__ModifiedAccountId__6B79F03D FOREIGN KEY (ModifiedAccountId) REFERENCES dbo.Account (AccountId)   
+)
+GO
+
+--DROP TABLE EntryNoteDetail
+CREATE TABLE dbo.EntryNoteDetail
+(
+    Quantity int,
+    CostPrice decimal(16,6),
+    ProductId int not null,
+    EntryNoteId int not null,
+    ProductPresentationId int not null,
+    CONSTRAINT FK__EntryNoteDetail__ProductId__6B79F03D FOREIGN KEY (ProductId) REFERENCES dbo.Product (ProductId),
+    CONSTRAINT FK__EntryNoteDetail__EntryNoteId__6B79F03D FOREIGN KEY (EntryNoteId) REFERENCES dbo.EntryNote (EntryNoteId),
+    CONSTRAINT FK__EntryNoteDetail__ProductPresentationId__6B79F03D FOREIGN KEY (ProductPresentationId) REFERENCES dbo.ProductPresentation (ProductPresentationId),
+    CONSTRAINT PK__EntryNoteDetail_PK PRIMARY KEY (ProductId, EntryNoteId, ProductPresentationId)
+)
+GO
+
+CREATE TYPE EntryNoteList as Table (
+    Id int,
+    Quantity int,
+    CostPrice decimal(16,6),
+    ProductId int,
+    ProductPresentationId int
+)
+GO  
+
+CREATE OR ALTER PROC dbo.EntryNoteInsertUpdate
+(
+    @EntryNoteId int,
+    @Correlative varchar(20),
+    @State char(1),
+    @CostPriceTotal decimal(16,6),
+    @RegistrationAccountId int,
+    @EntryNoteList EntryNoteList READONLY
+)
+AS
+    DECLARE @L_EntryNoteId int = 0;
+    DECLARE @Id int, @Quantity int, @CostPrice decimal(16,6), @ProductId int, @ProductPresentationId int
+    DECLARE @L_EquivalentQuantity int, @L_MeasureFromId int
+BEGIN
+    BEGIN TRY
+        BEGIN TRAN
+            IF @EntryNoteId = 0
+                BEGIN
+                    INSERT INTO dbo.EntryNote
+                                    (Correlative,
+                                     [State],
+                                     CostPriceTotal,
+                                     RegistrationDate,
+                                     RegistrationAccountId)
+                           VALUES   
+                                    (@Correlative,
+                                     @State,
+                                     @CostPriceTotal,
+                                     GETDATE(),
+                                     @RegistrationAccountId)
+
+                    SET @L_EntryNoteId = (SELECT SCOPE_IDENTITY())
+
+                    DECLARE Cursor1 CURSOR LOCAL FOR 
+                    SELECT Id, Quantity, CostPrice, ProductId, ProductPresentationId FROM @EntryNoteList
+
+                    OPEN Cursor1 
+                        FETCH Cursor1 INTO @Id, @Quantity, @ProductId, @CostPrice, @ProductPresentationId
+
+                    WHILE @@FETCH_STATUS = 0
+                        BEGIN
+                            INSERT INTO dbo.EntryNoteDetail 
+                                            (Quantity,
+                                             CostPrice,
+                                             ProductId,
+                                             EntryNoteId,
+                                             ProductPresentationId)
+                                VALUES      
+                                            (@Quantity,
+                                             @CostPrice,
+                                             @ProductId,
+                                             @EntryNoteId,
+                                             @ProductPresentationId)
+
+
+                            DECLARE CursorPresentation CURSOR LOCAL FOR
+                            SELECT 
+                                    EquivalentQuantity,
+                                    MeasureFromId
+                                FROM dbo.ProductPresentation
+                            WHERE ProductId = @ProductId
+
+                            OPEN CursorPresentation 
+                                FETCH CursorPresentation INTO @L_EquivalentQuantity, @L_MeasureFromId
+                            
+                            WHILE @@FETCH_STATUS = 0
+                                BEGIN
+                                        
+                                    FETCH CursorPresentation INTO @L_EquivalentQuantity, @L_MeasureFromId
+                                END
+
+                            FETCH Cursor1 INTO @Id, @Quantity, @ProductId, @CostPrice, @ProductPresentationId
+
+                        END
+                    CLOSE Cursor1
+                    DEALLOCATE Cursor1 
+                END
+            ELSE 
+                BEGIN
+                    PRINT 'UPDATE'
+                END
+        COMMIT TRAN
+    END TRY
+BEGIN CATCH
+    DECLARE @ErrorNumber int
+        DECLARE @ErrorSeverity varchar(1000), @ErrorState varchar(1000), @ErrorProcedure varchar(1000),
+                @ErrorLine int, @ErrorMessage varchar(1000), @RegistrationDate datetime
+        SELECT 
+            @ErrorNumber = ERROR_NUMBER(),
+            @ErrorSeverity = ERROR_SEVERITY(),
+            @ErrorState = ERROR_STATE(),
+            @ErrorProcedure = ERROR_PROCEDURE(),
+            @ErrorLine = ERROR_LINE(),
+            @ErrorMessage = ERROR_MESSAGE(),
+            @RegistrationDate = GETDATE();
+        
+        ROLLBACK TRAN;
+        EXEC dbo.ErrorLogInsert @ErrorNumber, @ErrorSeverity, @ErrorState, @ErrorProcedure, @ErrorLine, @ErrorMessage
+        RAISERROR (@ErrorMessage,
+                   @ErrorSeverity,
+                   @ErrorState);
+END CATCH
+END
+GO
+
+/*
+CREATE OR ALTER TRIGGER dbo.TR_EntryNoteDetail_AfterInsert
+ON dbo.EntryNoteDetail
+AFTER INSERT 
+AS
+BEGIN
+    PRINT 'INICIA RITGGER'
+    DECLARE
+        @Quantity int,
+        @ProductId int,
+        @ProductPresentationId int,
+        @RegistrationAccountId int,
+        
+        @StorageId int
+        SELECT 
+                @Quantity = Quantity,
+                @ProductId = ProductId,
+                @ProductPresentationId = ProductPresentationId,
+                @RegistrationAccountId = 1
+            FROM inserted a
+        PRINT 'STORAGEID' + cast(@ProductId as varchar(10))
+        PRINT '@ProductPresentationId' + cast(@ProductPresentationId as varchar(10))
+        PRINT '@RegistrationAccountId' + cast(@RegistrationAccountId as varchar(10))
+
+        DECLARE Cursor1 CURSOR LOCAL FOR 
+        SELECT StorageId FROM dbo.Storage
+            
+        OPEN Cursor1
+        FETCH Cursor1 INTO @StorageId
+            
+        WHILE @@FETCH_STATUS = 0
+            BEGIN
+                UPDATE dbo.StorageProduct
+                    SET Quantity = Quantity + @Quantity
+                WHERE StorageId = @StorageId
+
+                FETCH Cursor1 INTO @StorageId
+            END
+        CLOSE Cursor1
+        DEALLOCATE Cursor1
+            
+END
+GO**/
