@@ -17,7 +17,25 @@ begin
 	exec dbo.ProductInsertUpdate @productId, @Description, @Code, @CategoryId, @SubCategoryId, @BrandId,
 			@State, @AccountId, @ProductPresentationList
 end
-GO**/
+GO
+
+
+declare 
+	@EntryNoteId int = 0,
+	@Correlative varchar(100) = '',
+	@State char(1) = '1',
+	@CostPriceTotal decimal(16,6) = 0,
+	@RegistrationAccountId int = 1,
+	@EntryNoteList AS dbo.EntryNoteList
+begin
+	insert @EntryNoteList (Quantity, CostPrice, ProductId, EntryNoteId, ProductPresentationId)
+	values (1, 10.5, 2, 0, 7)
+	exec dbo.EntryNoteInsertUpdate @EntryNoteId, @Correlative, @State, @CostPriceTotal, @RegistrationAccountId, @EntryNoteList
+end
+GO
+
+
+**/
 
 INSERT INTO Account VALUES('MARC', '$2a$11$sBDrsl2ZQxbrupLdCzc2qeH1ddR68XX2bltVq86nptLzaCLcuVsvG', 'MIGUEL ANGEL', 'ROJAS CORAJE', '93334444', 'CORREO', '44413254', '1', 1, GETDATE(), NULL, NULL, NULL)
 

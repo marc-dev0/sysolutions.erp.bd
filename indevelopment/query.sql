@@ -764,6 +764,7 @@ CREATE OR ALTER PROC dbo.ProductPresentationGetByProductId
 AS 
 BEGIN
     SELECT 
+            ProductPresentationId,
             EquivalentFrom = b.[Description],
             a.Price, 
             a.Hierarchy,
@@ -1220,11 +1221,13 @@ CREATE TABLE dbo.EntryNoteDetail
 )
 GO
 
+--DROP TYPE EntryNoteList
 CREATE TYPE EntryNoteList as Table (
     Id int,
     Quantity int,
     CostPrice decimal(16,6),
     ProductId int,
+    EntryNoteId int,
     ProductPresentationId int
 )
 GO  
@@ -1241,7 +1244,8 @@ CREATE OR ALTER PROC dbo.EntryNoteInsertUpdate
 AS
     DECLARE @L_EntryNoteId int = 0;
     DECLARE @Id int, @Quantity int, @CostPrice decimal(16,6), @ProductId int, @ProductPresentationId int
-    DECLARE @L_EquivalentQuantity int, @L_MeasureFromId int
+    DECLARE @L_EquivalentQuantity int, @L_EquivalentQuantitySaved int = 1, @L_MeasureFromId int
+    DECLARE @L_Hierarchy int, @L_CountPresentation int = 1
 BEGIN
     BEGIN TRY
         BEGIN TRAN
@@ -1266,10 +1270,12 @@ BEGIN
                     SELECT Id, Quantity, CostPrice, ProductId, ProductPresentationId FROM @EntryNoteList
 
                     OPEN Cursor1 
-                        FETCH Cursor1 INTO @Id, @Quantity, @ProductId, @CostPrice, @ProductPresentationId
+                        FETCH Cursor1 INTO @Id, @Quantity, @CostPrice, @ProductId, @ProductPresentationId
 
                     WHILE @@FETCH_STATUS = 0
                         BEGIN
+							/*print '@ProductId' + cast(@ProductId as varchar(10))
+							print '@@ProductPresentationId' + cast(@ProductPresentationId as varchar(10))*/
                             INSERT INTO dbo.EntryNoteDetail 
                                             (Quantity,
                                              CostPrice,
@@ -1280,24 +1286,61 @@ BEGIN
                                             (@Quantity,
                                              @CostPrice,
                                              @ProductId,
-                                             @EntryNoteId,
+                                             @L_EntryNoteId,
                                              @ProductPresentationId)
 
 
+                            SELECT 
+                                    @L_Hierarchy = Hierarchy
+                                FROM dbo.ProductPresentation
+                            WHERE ProductId = @ProductId
+                            AND ProductPresentationId = @ProductPresentationId
+							/*print '@ProductId' + cast(@ProductId as varchar(10))
+							print '@@ProductPresentationId' + cast(@ProductPresentationId as varchar(10))*/
                             DECLARE CursorPresentation CURSOR LOCAL FOR
                             SELECT 
                                     EquivalentQuantity,
-                                    MeasureFromId
+                                    MeasureFromId,
+									ProductPresentationId
                                 FROM dbo.ProductPresentation
                             WHERE ProductId = @ProductId
+                            AND Hierarchy <= @L_Hierarchy
+							ORDER BY Hierarchy DESC
 
                             OPEN CursorPresentation 
-                                FETCH CursorPresentation INTO @L_EquivalentQuantity, @L_MeasureFromId
+                                FETCH CursorPresentation INTO @L_EquivalentQuantity, @L_MeasureFromId, @ProductPresentationId
                             
                             WHILE @@FETCH_STATUS = 0
                                 BEGIN
-                                        
-                                    FETCH CursorPresentation INTO @L_EquivalentQuantity, @L_MeasureFromId
+								print '@@@L_EquivalentQuantity' + cast(@L_EquivalentQuantity as varchar(10))
+								print '@@@@Quantity' + cast(@Quantity as varchar(10))
+								print '@@@@@L_CountPresentatioN' + cast(@L_CountPresentation as varchar(10))
+								print '@@@@@@ProductPresentationId' + cast(@ProductPresentationId as varchar(10))
+								
+                                    IF @L_CountPresentation = 1 
+                                        BEGIN
+                                            UPDATE dbo.StorageProduct
+                                                SET Quantity        += @Quantity,
+                                                    ModifiedDate    = GETDATE()
+                                            WHERE ProductId = @ProductId
+                                            AND ProductPresentationId = @ProductPresentationId
+                                        END
+                                    ELSE 
+                                        BEGIN
+                                            UPDATE dbo.StorageProduct
+                                                SET Quantity        += @L_EquivalentQuantitySaved * @Quantity,
+                                                    ModifiedDate    = GETDATE()
+                                            WHERE ProductId             = @ProductId
+                                            AND ProductPresentationId   = @ProductPresentationId
+                                        END
+									PRINT '@@@@@@@L_EquivalentQuantity' + CAST(@L_EquivalentQuantity AS VARCHAR(100))
+									print '@L_EquivalentQuantitySaved' + cast(@L_EquivalentQuantitySaved as varchar(100))
+									set @L_EquivalentQuantitySaved = IIF(@L_EquivalentQuantitySaved = 0, 1 * @L_EquivalentQuantity,@L_EquivalentQuantitySaved * @L_EquivalentQuantity);
+									print '@L_EquivalentQuantitySaved' + cast(@L_EquivalentQuantitySaved as varchar(4000))
+									--SET @L_EquivalentQuantitySaved = @L_EquivalentQuantitySaved * @L_EquivalentQuantity;
+									print '@L_EquivalentQuantitySaved_' + cast(@L_EquivalentQuantitySaved as varchar(4000))
+                                    SET @L_CountPresentation = @L_CountPresentation + 1;
+                                    FETCH CursorPresentation INTO @L_EquivalentQuantity, @L_MeasureFromId, @ProductPresentationId
                                 END
 
                             FETCH Cursor1 INTO @Id, @Quantity, @ProductId, @CostPrice, @ProductPresentationId
