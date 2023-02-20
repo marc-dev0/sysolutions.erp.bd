@@ -1,5 +1,15 @@
 /*
 declare 
+	@salesOrderId int = 0
+begin
+	exec dbo.SalesOrderInsert '', 4.7, '1', 1, @salesOrderId output
+	exec dbo.SalesOrderDetailInsert 52, 4.7, 'Kilogramos', 1, @salesOrderId, 2
+end
+GO
+
+
+
+declare 
 	@productId int = 5,
 	@Description varchar(200) = 'Product1',
 	@Code varchar(100) = '132',
@@ -18,6 +28,28 @@ begin
 			@State, @AccountId, @ProductPresentationList
 end
 GO
+
+
+declare 
+	@EntryNoteId int = 0,
+	@Correlative varchar(100) = '',
+	@State char(1) = '1',
+	@CostPriceTotal decimal(16,6) = 4.5,
+	@RegistrationAccountId int = 1,
+	@EntryNoteList AS dbo.EntryNoteList
+begin
+	insert @EntryNoteList (Quantity, CostPrice, ProductId, EntryNoteId, ProductPresentationId)
+	values (5000, 0.0047, 1, 0, 1)
+	insert @EntryNoteList (Quantity, CostPrice, ProductId, EntryNoteId, ProductPresentationId)
+	values (52, 3.5, 1, 0, 2)
+	insert @EntryNoteList (Quantity, CostPrice, ProductId, EntryNoteId, ProductPresentationId)
+	values (2, 150, 1, 0, 3)
+	insert @EntryNoteList (Quantity, CostPrice, ProductId, EntryNoteId, ProductPresentationId)
+	values (1, 2, 2, 0, 4)
+	exec dbo.EntryNoteInsertUpdate @EntryNoteId, @Correlative, @State, @CostPriceTotal, @RegistrationAccountId, @EntryNoteList
+end
+GO
+
 
 
 declare 
