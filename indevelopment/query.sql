@@ -779,8 +779,6 @@ BEGIN
 END
 GO
 
-
-
 --DROP TABLE dbo.SalesOrder
 CREATE TABLE dbo.SalesOrder (
     SalesOrderId int identity(1,1) primary key not null,
@@ -883,7 +881,7 @@ BEGIN
             @SalesOrderId,
             @ProductPresentationId)
 
-    SET @L_EquivalentQuantitySaved = 1;
+    /*SET @L_EquivalentQuantitySaved = 1;
                             SET @L_EquivalentQuantityParent = 0;
                             SET @L_CountPresentation = 1;
                             SET @L_ProductPresentationIdParent = 0;
@@ -918,8 +916,6 @@ BEGIN
 					@L_ProductPresentationIdParent	= a.ProductPresentationId,
                     @L_EquivalentQuantityParent		= a.EquivalentQuantity
                 FROM dbo.ProductPresentation a
-			/*INNER JOIN dbo.StorageProduct b on b.ProductId = a.ProductId 
-			AND b.ProductPresentationId = a.ProductPresentationId*/
             WHERE a.ProductId = @ProductId
             AND a.MeasureToId = @L_MeasureFromId
 
@@ -958,7 +954,7 @@ BEGIN
 					WHERE Productid				= @ProductId
 					AND ProductPresentationId	= @L_ProductPresentationId
 					print '@L_QuantityTraceOut' + cast(@L_QuantityTraceOut as varchar(1000))
-					/**Si la cantidad es igual a la cantidad equivalente de su medida padre*/
+					--Si la cantidad es igual a la cantidad equivalente de su medida padre
 					IF ABS(@L_QuantityTraceOut) = @L_EquivalentQuantityParent 
 						BEGIN
 						PRINT 'ENTRO 1'
@@ -977,7 +973,7 @@ BEGIN
 									AND ProductPresentationId	= @L_ProductPresentationIdParent
 								END
 						END
-					/**Si la cantidad es menor a la cantidad equivalente de su medida padre*/
+					--Si la cantidad es menor a la cantidad equivalente de su medida padre
                     ELSE IF ((ABS(@Amount) < @L_EquivalentQuantityParent) AND 
 							 (@L_QuantityTraceOutBefore = 0) AND
 							 (@ProductPresentationId = @L_ProductPresentationId))
@@ -987,19 +983,14 @@ BEGIN
                             SET @L_QuantityTraceOutCalculated = @Amount - (CAST(AVG(@Amount/@L_EquivalentQuantityParent) AS INTEGER) * @L_EquivalentQuantityParent)
                             print '@L_QuantityTraceOutCalculated' + cast(@L_QuantityTraceOutCalculated as varchar(1000))
 							PRINT '@L_ProductPresentationIdParent' + CAST(@L_ProductPresentationIdParent AS VARCHAR(1000))
-                            /*UPDATE dbo.StorageProduct
-                                SET QuantityTraceOut = QuantityTraceOut + @Amount,
-									ModifiedDate     = GETDATE()-100
-							WHERE ProductId             = @ProductId
-							AND ProductPresentationId   = @ProductPresentationId*/
-
+                           
                             UPDATE dbo.StorageProduct
 								SET Quantity		= Quantity - 1,
 									ModifiedDate    = GETDATE()-100
 							WHERE ProductId				= @ProductId
 							AND ProductPresentationId	= @L_ProductPresentationIdParent
                         END
-					/**Si la cantidad es mayor a la cantidad equivalente de su medida padre*/
+					--Si la cantidad es mayor a la cantidad equivalente de su medida padre
                     ELSE IF ABS(@Amount) > @L_EquivalentQuantityParent
                         BEGIN
 							PRINT 'ENTRO 3'
@@ -1020,7 +1011,7 @@ BEGIN
 							WHERE ProductId				= @ProductId
 							AND ProductPresentationId	= @L_ProductPresentationIdParent
                         END
-					/**Si la cantidad en el trace a la cantidad equivalente de su medida padre*/
+					--Si la cantidad en el trace a la cantidad equivalente de su medida padre
                     ELSE IF @L_QuantityTraceOut > @L_EquivalentQuantityParent
                         BEGIN
 							PRINT 'ENTRO 4'
@@ -1042,10 +1033,6 @@ BEGIN
 				ELSE 
 					BEGIN
 						PRINT 'ENTRO 5'
-						/* UPDATE dbo.StorageProduct
-							SET QuantityTraceOut = 0
-                         WHERE ProductId = @ProductId
-                         AND ProductPresentationId = @ProductPresentationId*/
 					END
 	
 			set @L_EquivalentQuantitySaved = IIF(@L_EquivalentQuantitySaved = 0, 1 * @L_EquivalentQuantity,@L_EquivalentQuantitySaved * @L_EquivalentQuantity);
@@ -1058,7 +1045,7 @@ BEGIN
 
 		END
 	CLOSE CursorPresentation
-	DEALLOCATE CursorPresentation 
+	DEALLOCATE CursorPresentation **/
 END
 GO
 
@@ -1773,4 +1760,371 @@ SELECT SUM(p.rows) FROM sys.partitions AS p
   AND s.name = N'dbo'
   AND p.index_id IN (0,1);
 **/
+
+
+CREATE TABLE dbo.SalesPoint (
+	SalesPointId int identity(1,1) primary key not null,
+	Correlative varchar(20),
+	SaleTotal decimal(16,6),
+	State char(1),
+	RegistrationDate datetime null,
+    ModifiedDate datetime null,
+    RegistrationAccountId int null,
+    ModifiedAccountId int null,
+    CONSTRAINT FK__SalesPoint__RegistrationUserId__6B79F03D FOREIGN KEY (RegistrationAccountId) REFERENCES dbo.Account (AccountId),
+    CONSTRAINT FK__SalesPoint__ModifiedUserId__6B79F03D FOREIGN KEY (ModifiedAccountId) REFERENCES dbo.Account (AccountId)
+)
+GO
+
+CREATE TABLE dbo.SalesPointDetail
+(
+	Quantity int,
+	SalePrice decimal(16,6),
+	ProductId int not null,
+	SalesPointId int not null,
+	ProductPresentationId int not null,
+	CONSTRAINT FK__SalesPointDetail__ProductId__6B79F03D FOREIGN KEY (ProductId) REFERENCES dbo.Product (ProductId),
+    CONSTRAINT FK__SalesPointDetail__SalesPointId__6B79F03D FOREIGN KEY (SalesPointId) REFERENCES dbo.SalesPoint (SalesPointId),
+    CONSTRAINT FK__SalesPointDetail__ProductPresentationId__6B79F03D FOREIGN KEY (ProductPresentationId) REFERENCES dbo.ProductPresentation (ProductPresentationId),
+    CONSTRAINT PK__SalesPointDetail_PK PRIMARY KEY (ProductId, SalesPointId, ProductPresentationId)
+)
+GO
+
+CREATE TYPE SalesPointList as Table (
+    Id int,
+    Quantity int,
+    SalePrice decimal(16,6),
+    ProductId int,
+    SalesPointId int,
+    ProductPresentationId int
+)
+GO  
+
+CREATE OR ALTER PROC dbo.SalesPointInsertUpdate
+(
+    @SalesPointId int,
+	@Correlative varchar(20),
+    @State char(1),
+    @SaleTotal decimal(16,6),
+    @RegistrationAccountId int,
+    @SalesPointList SalesPointList READONLY
+)
+AS
+	DECLARE @L_SalesPointeId int = 0;
+    DECLARE @Id int, 
+            @Quantity int, 
+            @SalePrice decimal(16,6), 
+            @ProductId int, 
+            @ProductPresentationId int
+    DECLARE @L_EquivalentQuantity int,
+            @L_EquivalentQuantitySaved int = 1,
+            @L_EquivalentQuantityParent int,
+			@L_QuantityTraceOut int,
+			@L_QuantityTraceOutBefore int,
+            @L_MeasureFromId int,
+			@L_ProductPresentationIdParent int,
+			@L_ProductPresentationId int
+    DECLARE @L_Hierarchy int, 
+            @L_CountPresentation int = 1,
+            @L_CountSales int = 0
+BEGIN
+	BEGIN TRY 
+		BEGIN TRAN
+			IF @SalesPointId = 0
+				BEGIN
+					SELECT 
+                        @L_CountSales = COUNT(*) + 1
+                    FROM dbo.SalesPoint
+                
+                    SET @Correlative = FORMAT(@L_CountSales, 'ING-000000')
+                    INSERT INTO dbo.SalesPoint
+                                    (Correlative,
+                                     [State],
+                                     SaleTotal,
+                                     RegistrationDate,
+                                     RegistrationAccountId)
+                           VALUES   
+                                    (@Correlative,
+                                     @State,
+                                     @SaleTotal,
+                                     GETDATE(),
+                                     @RegistrationAccountId)
+
+					SET @L_SalesPointeId = (SELECT SCOPE_IDENTITY())
+
+					DECLARE Cursor1 CURSOR LOCAL FOR 
+                    SELECT Id, Quantity, SalePrice, ProductId, ProductPresentationId FROM @SalesPointList
+
+                    OPEN Cursor1 
+                        FETCH NEXT FROM Cursor1 INTO @Id, @Quantity, @SalePrice, @ProductId, @ProductPresentationId
+
+                    WHILE @@FETCH_STATUS = 0
+                        BEGIN
+                            print '@Id__' + cast(@Id as varchar(4000))
+                            print '@Quantity__' + cast(@Quantity as varchar(4000))
+                            print '@SaleTotal_' + cast(@SaleTotal as varchar(4000))
+                            print '@ProductId__' + cast(@ProductId as varchar(4000))
+							print '@@ProductPresentationId__' + cast(@ProductPresentationId as varchar(4000))
+                            INSERT INTO dbo.SalesPointDetail 
+                                            (Quantity,
+                                             SalePrice,
+                                             ProductId,
+                                             SalesPointId,
+                                             ProductPresentationId)
+                                VALUES      
+                                            (@Quantity,
+                                             @SaleTotal,
+                                             @ProductId,
+                                             @L_SalesPointeId,
+                                             @ProductPresentationId)
+
+                            SET @L_EquivalentQuantitySaved = 1;
+                            SET @L_EquivalentQuantityParent = 0;
+                            SET @L_CountPresentation = 1;
+                            SET @L_QuantityTraceOut = 0;
+							SET @L_QuantityTraceOutBefore = 0
+                            SET @L_ProductPresentationIdParent = 0;
+							SET @L_ProductPresentationId = 0;
+                         
+                            SELECT 
+                                    @L_Hierarchy = Hierarchy
+                                FROM dbo.ProductPresentation
+                            WHERE ProductId = @ProductId
+                            AND ProductPresentationId = @ProductPresentationId
+                            print '@L_Hierarchy' + cast(@ProductPresentationId as varchar(4000))
+							/*print '@ProductId' + cast(@ProductId as varchar(10))
+							print '@@ProductPresentationId' + cast(@ProductPresentationId as varchar(10))*/
+                            DECLARE CursorPresentation CURSOR LOCAL FOR
+                            SELECT 
+                                    EquivalentQuantity,
+                                    MeasureFromId,
+									ProductPresentationId
+                                FROM dbo.ProductPresentation
+                            WHERE ProductId = @ProductId
+                            AND Hierarchy <= @L_Hierarchy
+							ORDER BY Hierarchy DESC
+
+                            OPEN CursorPresentation 
+                                FETCH NEXT FROM CursorPresentation INTO @L_EquivalentQuantity, @L_MeasureFromId, @L_ProductPresentationId
+                            
+                            WHILE @@FETCH_STATUS = 0
+                                BEGIN
+								print '@L_EquivalentQuantity' + cast(@L_EquivalentQuantity as varchar(10))
+								print '@L_MeasureFromId' + cast(@L_MeasureFromId as varchar(10))
+								print '@L_ProductPresentationId' + cast(@L_ProductPresentationId as varchar(10))
+									
+                                    SELECT 
+                                            TOP 1
+											@L_ProductPresentationIdParent	= ProductPresentationId,
+                                            @L_EquivalentQuantityParent		= EquivalentQuantity
+                                        FROM dbo.ProductPresentation
+                                    WHERE ProductId = @ProductId
+                                    AND MeasureToId = @L_MeasureFromId
+                                    ORDER BY ProductPresentationId DESC
+                                    PRINT '@L_ProductPresentationIdParent' + CAST(@L_ProductPresentationIdParent AS VARCHAR(100))
+									print '@L_EquivalentQuantityParent' + cast(@L_EquivalentQuantityParent as varchar(4000))
+                                    print '@L_CountPresentation' + cast(@L_CountPresentation as varchar(4000))
+                                    
+									SELECT 
+											@L_QuantityTraceOutBefore = QuantityTraceOut
+										FROM dbo.StorageProduct
+									WHERE Productid				= @ProductId
+									AND ProductPresentationId	= @L_ProductPresentationId
+
+                                    IF @L_CountPresentation = 1 
+                                        BEGIN
+                                            print '@@@@Quantityxxx' + cast(@Quantity as varchar(10))
+                                            print '@L_QuantityTraceOutBefore' + cast(@L_QuantityTraceOutBefore as varchar(10))
+                                            
+                                            UPDATE dbo.StorageProduct
+												SET Quantity			= Quantity - @Quantity,
+													QuantityTraceOut	+= @Quantity,
+													ModifiedDate		= GETDATE()
+											WHERE ProductId = @ProductId
+											AND ProductPresentationId = @L_ProductPresentationId
+                                        END
+                                    ELSE 
+                                        BEGIN
+											UPDATE dbo.StorageProduct
+												SET Quantity        = Quantity - (@L_EquivalentQuantitySaved * @Quantity),
+													ModifiedDate    = GETDATE()
+											WHERE ProductId             = @ProductId
+											AND ProductPresentationId   = @L_ProductPresentationId
+										END
+
+									IF @L_EquivalentQuantityParent > 0 
+										BEGIN
+                                            PRINT 'GAA'
+											SELECT 
+													@L_QuantityTraceOut = QuantityTraceOut
+												FROM dbo.StorageProduct
+											WHERE Productid				= @ProductId
+											AND ProductPresentationId	= @L_ProductPresentationId
+                                            print '@L_QuantityTraceOut' + cast(@L_QuantityTraceOut as varchar(4000))
+
+											IF ABS(@L_QuantityTraceOut) = @L_EquivalentQuantityParent 
+												BEGIN
+													UPDATE dbo.StorageProduct
+														SET QuantityTraceOut	= 0,
+															ModifiedDate		= GETDATE()
+													WHERE ProductId             = @ProductId
+													AND ProductPresentationId   = @L_ProductPresentationId
+
+													IF @L_QuantityTraceOutBefore = 0 
+														BEGIN
+															UPDATE dbo.StorageProduct
+																SET Quantity		-= 1,
+																	ModifiedDate    = GETDATE()
+															WHERE ProductId				= @ProductId
+															AND ProductPresentationId	= @L_ProductPresentationIdParent
+														END
+												END
+											ELSE IF ((ABS(@Quantity) < @L_EquivalentQuantityParent) AND 
+													(@L_QuantityTraceOutBefore = 0) AND
+													(@ProductPresentationId = @L_ProductPresentationId))
+                                                BEGIN
+													PRINT 'ENTRO 2'
+													DECLARE @L_QuantityTraceOutCalculated INT = 0
+													SET @L_QuantityTraceOutCalculated = @Quantity - (CAST(AVG(@Quantity/@L_EquivalentQuantityParent) AS INTEGER) * @L_EquivalentQuantityParent)
+													print '@L_QuantityTraceOutCalculated' + cast(@L_QuantityTraceOutCalculated as varchar(1000))
+													PRINT '@L_ProductPresentationIdParent' + CAST(@L_ProductPresentationIdParent AS VARCHAR(1000))
+													/*UPDATE dbo.StorageProduct
+														SET QuantityTraceOut = QuantityTraceOut + @Amount,
+															ModifiedDate     = GETDATE()-100
+													WHERE ProductId             = @ProductId
+													AND ProductPresentationId   = @ProductPresentationId*/
+
+													UPDATE dbo.StorageProduct
+														SET Quantity		= Quantity - 1,
+															ModifiedDate    = GETDATE()-100
+													WHERE ProductId				= @ProductId
+													AND ProductPresentationId	= @L_ProductPresentationIdParent
+                                                END
+											ELSE IF ABS(@Quantity) > @L_EquivalentQuantityParent
+												BEGIN
+													PRINT 'ENTRO 3'
+													SET @L_QuantityTraceOutCalculated = @Quantity - (CAST(AVG(@Quantity/@L_EquivalentQuantityParent) AS INTEGER) * @L_EquivalentQuantityParent)
+													
+													UPDATE dbo.StorageProduct
+														SET QuantityTraceOut = @L_QuantityTraceOutCalculated,
+															ModifiedDate     = GETDATE()
+													WHERE ProductId             = @ProductId
+													AND ProductPresentationId   = @L_ProductPresentationId
+
+													DECLARE @L_QuantityCalculated INT = 0
+													SET @L_QuantityCalculated = CAST(AVG(@Quantity/@L_EquivalentQuantityParent) AS INTEGER)
+
+													UPDATE dbo.StorageProduct
+														SET Quantity		-= @L_QuantityCalculated,
+															ModifiedDate    = GETDATE()
+													WHERE ProductId				= @ProductId
+													AND ProductPresentationId	= @L_ProductPresentationIdParent
+												END
+											ELSE IF @L_QuantityTraceOut > @L_EquivalentQuantityParent
+												BEGIN
+													PRINT 'ENTRO 4'
+													SET @L_QuantityTraceOutCalculated = @L_QuantityTraceOut - (CAST(AVG(@L_QuantityTraceOut/@L_EquivalentQuantityParent) AS INTEGER) * @L_EquivalentQuantityParent)
+													UPDATE dbo.StorageProduct
+														SET QuantityTraceOut = @L_QuantityTraceOutCalculated,
+															ModifiedDate    = GETDATE()
+													WHERE ProductId             = @ProductId
+													AND ProductPresentationId   = @L_ProductPresentationId
+
+													SET @L_QuantityCalculated = CAST(AVG(@L_QuantityTraceOut/@L_EquivalentQuantityParent) AS INTEGER)
+														UPDATE dbo.StorageProduct
+															SET Quantity		-= @L_QuantityCalculated,
+																ModifiedDate    = GETDATE()
+														WHERE ProductId				= @ProductId
+														AND ProductPresentationId	= @L_ProductPresentationIdParent
+												END
+										END
+									ELSE 
+                                        BEGIN
+											PRINT 'ENTRO 5'
+                                            /*UPDATE dbo.StorageProduct
+                                                SET QuantityTraceIn = 0
+                                            WHERE ProductId = @ProductId
+                                            AND ProductPresentationId = @ProductPresentationId*/
+                                        END
+                                        
+                                        
+									
+									set @L_EquivalentQuantitySaved = IIF(@L_EquivalentQuantitySaved = 0, 1 * @L_EquivalentQuantity,@L_EquivalentQuantitySaved * @L_EquivalentQuantity);
+									print '@L_EquivalentQuantitySaved___' + cast(@L_EquivalentQuantitySaved as varchar(4000))
+									--SET @L_EquivalentQuantitySaved = @L_EquivalentQuantitySaved * @L_EquivalentQuantity;
+                                    SET @L_CountPresentation = @L_CountPresentation + 1;
+                                    print '@L_CountPresentation__' + cast(@L_CountPresentation as varchar(4000))
+                                    FETCH NEXT FROM CursorPresentation INTO @L_EquivalentQuantity, @L_MeasureFromId, @L_ProductPresentationId
+                                END
+                            CLOSE CursorPresentation
+                            DEALLOCATE CursorPresentation 
+                            PRINT '---------------------------------------------------------------------------'
+                            PRINT '---------------------------------------------------------------------------'
+                            FETCH NEXT FROM Cursor1 INTO @Id, @Quantity, @SalePrice, @ProductId, @ProductPresentationId
+
+                        END
+                    CLOSE Cursor1
+                    DEALLOCATE Cursor1 
+				END
+		COMMIT TRAN
+	END TRY
+BEGIN CATCH
+	DECLARE @ErrorNumber int
+    DECLARE @ErrorSeverity varchar(1000), @ErrorState varchar(1000), @ErrorProcedure varchar(1000),
+            @ErrorLine int, @ErrorMessage varchar(1000), @RegistrationDate datetime
+    SELECT 
+        @ErrorNumber = ERROR_NUMBER(),
+        @ErrorSeverity = ERROR_SEVERITY(),
+        @ErrorState = ERROR_STATE(),
+        @ErrorProcedure = ERROR_PROCEDURE(),
+        @ErrorLine = ERROR_LINE(),
+        @ErrorMessage = ERROR_MESSAGE(),
+        @RegistrationDate = GETDATE();
+        
+    ROLLBACK TRAN;
+    EXEC dbo.ErrorLogInsert @ErrorNumber, @ErrorSeverity, @ErrorState, @ErrorProcedure, @ErrorLine, @ErrorMessage
+    RAISERROR (@ErrorMessage,
+               @ErrorSeverity,
+               @ErrorState);
+END CATCH
+END
+GO
+
+CREATE OR ALTER PROC dbo.SalesPointGetaAll
+AS 
+BEGIN
+    SELECT 
+            a.SalesPointId,
+            a.Correlative, 
+            a.SaleTotal,
+            CASE WHEN a.State = '1' THEN 'Activo' ELSE 'Inactivo' END StateDescription,
+            a.State,
+            a.RegistrationDate,
+            RegisteredUser = concat(b.FirstName, ' ', b.LastName)
+        FROM dbo.SalesPoint a 
+    INNER JOIN dbo.Account b on b.AccountId = a.RegistrationAccountId
+END
+GO
+
+CREATE OR ALTER PROC dbo.SalesPointDetailGetAll
+(
+    @SalesPointId int
+)
+AS
+BEGIN
+    SELECT 
+            a.ProductId,
+            Product = concat(b.Description, ' X ', d.[Description]),
+            a.Quantity,
+            a.SalePrice
+        FROM dbo.SalesPointDetail a
+    INNER JOIN dbo.Product b                on b.ProductId              = a.ProductId--00:00:00.270
+    INNER JOIN dbo.ProductPresentation c    on c.ProductPresentationId  = a.ProductPresentationId
+    INNER JOIN dbo.Measure d                on d.MeasureId              = c.MeasureFromId
+    WHERE a.SalesPointId        = @SalesPointId
+    --ORDER BY a.SalesOrderId OFFSET @First ROWS FETCH NEXT @Rows ROWS ONLY--00:00:00.176;
+
+END
+GO
+
 

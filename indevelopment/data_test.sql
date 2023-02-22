@@ -66,6 +66,20 @@ begin
 end
 GO
 
+declare 
+	@SalesPointId int = 0,
+	@Correlative varchar(100) = '',
+	@State char(1) = '1',
+	@SaleTotal decimal(16,6) = 0,
+	@RegistrationAccountId int = 1,
+	@SalesPointList AS dbo.SalesPointList
+begin
+	insert @SalesPointList (Quantity, SalePrice, ProductId, SalesPointId, ProductPresentationId)
+	values (2, 9.40, 1, 0, 2)
+	exec dbo.EntryNoteInsertUpdate @EntryNoteId, @Correlative, @State, @CostPriceTotal, @RegistrationAccountId, @EntryNoteList
+end
+GO
+
 
 **/
 
