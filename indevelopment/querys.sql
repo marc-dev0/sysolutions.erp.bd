@@ -16,3 +16,16 @@ FROM dbo.Product a
 select * from dbo.ProductPresentation
 where ProductId = 1
 and MeasureFromId NOT IN(8)
+
+select * from Product
+select * from ProductPresentation
+
+
+SELECT CONCAT('10000000', FORMAT(1, '-'))
+
+SELECT FORMAT(1, '10000000000')
+SELECT CONCAT_WS('-', CONCAT(LEFT('10000000000', LEN('10000000000')-LEN(2)), 1), 2) AS Result;
+select right('abcd', LEN('ABCD')-1)
+SELECT LEN(15)
+SELECT LEFT('ABCD', LEN('ABCD')-1)
+

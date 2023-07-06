@@ -1,6 +1,7 @@
-CREATE DATABASE bd_erp
+
+CREATE DATABASE bd_erp_test
 GO
-USE bd_erp
+USE bd_erp_test
 GO
 --$2a$11$sBDrsl2ZQxbrupLdCzc2qeH1ddR68XX2bltVq86nptLzaCLcuVsvG 1234
 --drop database bd_erp;
@@ -409,7 +410,7 @@ CREATE TABLE dbo.ProductPresentation
     ProductPresentationId int identity(1,1) primary key not null,
     EquivalentQuantity int,
     Price decimal(16,6),
-    BarCode varchar(15),
+    BarCode varchar(100),
     Hierarchy int,
     MeasureFromId int,
     MeasureToId int,
@@ -424,90 +425,12 @@ CREATE TYPE ProductPresentationList as Table (
     Id int,
     EquivalentQuantity int,
     Price decimal(16,6),
-    BarCode varchar(15),
+    BarCode varchar(100),
     Hierarchy int,
     MeasureFromId int,
     MeasureToId int
 )
 GO
-
-/*CREATE OR ALTER PROC dbo.ProductUpdate
-(
-    @ProductId int,
-    @Description varchar(200),
-    @Code varchar(100),
-    @CategoryId int,
-    @SubCategoryId int,
-    @BrandId int,
-    @State char(1),
-    @ModifiedAccountId int,
-    @ProductPresentationList ProductPresentationList READONLY
-)
-AS
-    DECLARE @l_exists_presentation int = 0;
-    DECLARE @Id int, @EquivalentQuantity int, @Price decimal(16,6), @Barcode varchar(15),
-            @L_Hierarchy int, @MeasureFromId int, @MeasureToId int
-BEGIN
-    UPDATE dbo.Product
-        SET [Description]       = @Description,
-            Code                = @Code,
-            CategoryId          = @CategoryId,
-            SubCategoryId       = @SubCategoryId,
-            BrandId             = @BrandId,
-            [State]             = @State,
-            ModifiedDate        = GETDATE(),
-            ModifiedAccountId   = @ModifiedAccountId
-    WHERE ProductId             = @ProductId
-
-    DECLARE Cursor1 CURSOR FOR 
-        SELECT Id, EquivalentQuantity, Price, BarCode, Hierarchy, MeasureFromId, MeasureToId FROM @ProductPresentationList
-
-        OPEN Cursor1 
-            FETCH Cursor1 INTO @Id, @EquivalentQuantity, @Price, @Barcode, @L_Hierarchy,@MeasureFromId, @MeasureToId
-
-        WHILE @@FETCH_STATUS = 0
-            BEGIN
-                SET @l_exists_presentation = (
-                    SELECT COUNT(*) FROM dbo.ProductPresentation WHERE ProductId = @ProductId AND ProductPresentationId = @id
-                )
-
-                IF @l_exists_presentation > 0 
-                    BEGIN
-                        UPDATE dbo.ProductPresentation
-                            SET EquivalentQuantity      = @EquivalentQuantity,
-                                Price                   = @Price,
-                                BarCode                 = @Barcode,
-                                Hierarchy               = @L_Hierarchy,
-                                MeasureFromId           = @MeasureFromId,
-                                MeasureToId             = @MeasureToId
-                        WHERE ProductId             = @ProductId
-                        AND ProductPresentationId   = @Id
-                    END
-                ELSE 
-                    BEGIN
-                        INSERT INTO dbo.ProductPresentation 
-                                    (EquivalentQuantity,
-                                    Price,
-                                    BarCode,
-                                    Hierarchy,
-                                    MeasureFromId,
-                                    MeasureToId,
-                                    ProductId)
-                        VALUES      
-                                    (@EquivalentQuantity,
-                                    @Price,
-                                    @BarCode,
-                                    @L_Hierarchy,
-                                    @MeasureFromId,
-                                    @MeasureToId,
-                                    @ProductId)
-                    END
-            FETCH Cursor1 INTO @Id, @EquivalentQuantity, @Price, @Barcode, @L_Hierarchy, @MeasureFromId, @MeasureToId
-        END
-        CLOSE Cursor1
-        DEALLOCATE Cursor1   
-END
-GO**/
 
 CREATE OR ALTER PROC dbo.ProductInsertUpdate
 (
@@ -524,12 +447,21 @@ CREATE OR ALTER PROC dbo.ProductInsertUpdate
 AS 
     DECLARE @L_ProductId int = 0;
     DECLARE @l_exists_presentation int = 0;
-    DECLARE @Id int, @EquivalentQuantity int, @Price decimal(16,6), @Barcode varchar(15),
+    DECLARE @Id int, @EquivalentQuantity int, @Price decimal(16,6), @Barcode varchar(100),
             @L_Hierarchy int, @MeasureFromId int, @MeasureToId int
+    DECLARE @L_Code varchar(100), @L_CodePresentation varchar(100);
+    DECLARE @l_countProduct int = 0, @l_countProductPresentation int = 0;
 BEGIN
     BEGIN TRY
         BEGIN TRAN
             PRINT 'STORAGEID' + cast(@ProductId as varchar(10))
+
+            SELECT 
+                    @l_countProduct = COUNT(*)
+                FROM dbo.Product
+            
+            SET @L_Code = (SELECT FORMAT(IIF(@l_countProduct = 0, 1, @l_countProduct), '10000000000'))
+            
             IF @ProductId = 0 
                 BEGIN
                     INSERT INTO dbo.Product 
@@ -543,7 +475,7 @@ BEGIN
                                         RegistrationAccountId)
                         VALUES       
                                         (@Description, 
-                                        @Code,
+                                        @L_Code,
                                         @CategoryId,
                                         @SubCategoryId,
                                         @BrandId,
@@ -560,6 +492,8 @@ BEGIN
 
                     WHILE @@FETCH_STATUS = 0
                         BEGIN
+                            set @l_countProductPresentation += 1;
+                            SET @L_CodePresentation = (SELECT CONCAT_WS('-', CONCAT(LEFT('10000000000', LEN('10000000000')-LEN(@l_countProductPresentation)), @l_countProduct), @l_countProductPresentation));
                             INSERT INTO dbo.ProductPresentation 
                                         (EquivalentQuantity,
                                         Price,
@@ -571,7 +505,7 @@ BEGIN
                             VALUES      
                                         (@EquivalentQuantity,
                                         @Price,
-                                        @BarCode,
+                                        @L_CodePresentation,
                                         @L_Hierarchy,
                                         @MeasureFromId,
                                         @MeasureToId,
@@ -674,11 +608,31 @@ CREATE OR ALTER PROC ProductDelete
 )
 AS 
 BEGIN
+    BEGIN TRY
     UPDATE dbo.Product
         SET [State]             = '0',
             ModifiedAccountId   = @ModifiedAccountId,
             ModifiedDate        = GETDATE()
     WHERE ProductId = @ProductId
+    END TRY
+BEGIN CATCH
+      DECLARE @ErrorNumber int
+        DECLARE @ErrorSeverity varchar(1000), @ErrorState varchar(1000), @ErrorProcedure varchar(1000),
+                @ErrorLine int, @ErrorMessage varchar(1000), @RegistrationDate datetime
+        SELECT 
+            @ErrorNumber = ERROR_NUMBER(),
+            @ErrorSeverity = ERROR_SEVERITY(),
+            @ErrorState = ERROR_STATE(),
+            @ErrorProcedure = ERROR_PROCEDURE(),
+            @ErrorLine = ERROR_LINE(),
+            @ErrorMessage = ERROR_MESSAGE(),
+            @RegistrationDate = (SELECT CONVERT(datetimeoffset, GETDATE()) AT TIME ZONE 'SA Pacific Standard Time');
+        
+        EXEC dbo.ErrorLogInsert @ErrorNumber, @ErrorSeverity, @ErrorState, @ErrorProcedure, @ErrorLine, @ErrorMessage
+        RAISERROR (@ErrorMessage,
+                   @ErrorSeverity,
+                   @ErrorState);
+END CATCH
 END
 GO
 
@@ -691,6 +645,7 @@ BEGIN
             SubCategory = c.Description, 
             Brand = d.Description,
             Description = a.Description,
+            Code,
             a.state,
             CASE WHEN a.State = '1' THEN 'Activo' ELSE 'Inactivo' END StateDescription,
             a.State,
@@ -730,6 +685,7 @@ BEGIN
             a.BrandId,
             Brand = d.Description,
             Description = a.Description,
+            a.Code,
             a.state
         FROM dbo.Product a
     INNER JOIN Category b       ON b.CategoryId = a.CategoryId
